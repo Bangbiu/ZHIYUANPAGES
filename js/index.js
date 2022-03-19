@@ -8,6 +8,7 @@ import { CoordSystem } from "../lib/CoordinateSystem.js";
 import { SceneObject } from "../lib/SceneObject.js";
 import { Color } from "../lib/ColorLib.js";
 import { Rotation2D } from "../lib/Rotation2D.js";
+import { Graphics2D } from "../lib/Graphics2D.js";
 
 let canvas = /** @type {HTMLCanvasElement} */ (document.getElementById("mainCanvas"));
 if (!(canvas instanceof HTMLCanvasElement))
@@ -16,11 +17,13 @@ let ctx = /** @type {CanvasRenderingContext2D} */canvas.getContext("2d");
 //let context = canvas.getContext("2d");
 let crdsys = new CoordSystem(canvas.width,canvas.height);
 crdsys.bindMouseEvent(canvas);
-// SceneObjects
+
+// SceneObject
 /** @type {Array<SceneObject>} */ let objList = [];
 let comp = new SceneObject(200,200,new Rotation2D(45),
-    new Vector2D(1,1),new Color("blue"),new Color("yellow"),5,"heart");
+    new Vector2D(1,1),new Color("blue"),new Color("yellow"),5,new Graphics2D("heart"));
 objList.push(comp);
+
 //Image
 let backImg = new Image();
 backImg.src = "https://pages.cs.wisc.edu/~zhiyuan/background.jpg";
