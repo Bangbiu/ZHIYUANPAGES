@@ -8,7 +8,8 @@ import { CoordSystem } from "../lib/CoordinateSystem.js";
 import { SceneObject } from "../lib/SceneObject.js";
 import { Color } from "../lib/ColorLib.js";
 import { Rotation2D } from "../lib/Rotation2D.js";
-import { Graphics2D } from "../lib/Graphics2D.js";
+import { Graphics2D, GraphicsText } from "../lib/Graphics2D.js";
+import { CanvasButton } from "../lib/CanvasUIComponents.js";
 
 let canvas = /** @type {HTMLCanvasElement} */ (document.getElementById("mainCanvas"));
 if (!(canvas instanceof HTMLCanvasElement))
@@ -17,16 +18,7 @@ let ctx = /** @type {CanvasRenderingContext2D} */canvas.getContext("2d");
 //let context = canvas.getContext("2d");
 let crdsys = new CoordSystem(canvas.width,canvas.height);
 crdsys.bindMouseEvent(canvas);
-
-// SceneObject
 /** @type {Array<SceneObject>} */ let objList = [];
-let comp = new SceneObject(200,200,new Rotation2D(45),
-    new Vector2D(1,1),new Color("blue"),new Color("yellow"),5,new Graphics2D("heart"));
-objList.push(comp);
-
-//Image
-let backImg = new Image();
-backImg.src = "https://pages.cs.wisc.edu/~zhiyuan/background.jpg";
 
 function Render() {
 
@@ -37,6 +29,9 @@ function Render() {
         obj.update();
         obj.render(ctx);
     });
+
+    let a = new GraphicsText("Students");
+    a.render(ctx);
 
     window.requestAnimationFrame(Render);
 }
@@ -49,6 +44,20 @@ function resizeCanvas() {
     console.log(new Vector2D(window.innerWidth,window.innerHeight));
 }
 
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
-window.requestAnimationFrame(Render);
+function start() {
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    //objList.push(new SceneObject(200,200,45,"1,1","blue","yellow",5,"heart"));
+
+    objList.push(new CanvasButton(200,100,new Color("white"),new Color("black")).bindMouseEvent(canvas));
+    //console.log(objList[1].borderColor);
+
+    //Image
+    let backImg = new Image();
+    backImg.src = "https://pages.cs.wisc.edu/~zhiyuan/background.jpg";
+
+    window.requestAnimationFrame(Render);
+}
+
+start();
