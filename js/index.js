@@ -5,11 +5,12 @@
 // External Lib
 import { Vector2D } from "../lib/Vector2D.js";
 import { CoordSystem } from "../lib/CoordinateSystem.js";
-import { SceneObject } from "../lib/SceneObject.js";
+import { Object2D } from "../lib/Object2D.js";
 import { Color } from "../lib/ColorLib.js";
 import { Rotation2D } from "../lib/Rotation2D.js";
 import { Graphics2D, GraphicsText } from "../lib/Graphics2D.js";
 import { CanvasButton, CanvasLabel } from "../lib/CanvasUIComponents.js";
+import { Test } from "../lib/Test.js";
 
 let canvas = /** @type {HTMLCanvasElement} */ (document.getElementById("mainCanvas"));
 if (!(canvas instanceof HTMLCanvasElement))
@@ -17,7 +18,7 @@ if (!(canvas instanceof HTMLCanvasElement))
 let ctx = /** @type {CanvasRenderingContext2D} */canvas.getContext("2d");
 //let context = canvas.getContext("2d");
 let crdsys = new CoordSystem(canvas.width,canvas.height).bindMouseEvent(canvas);
-/** @type {Array<SceneObject>} */ let objList = [];
+/** @type {Array<Object2D>} */ let objList = [];
 
 function Render() {
     
@@ -44,7 +45,8 @@ function start() {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    //objList.push(new SceneObject(200,200,45,"1,1","blue","yellow",5,"heart"));
+
+    //objList.push(new Object2D(200,200,45,"1,1","blue","yellow",5,"heart"));
     crdsys.components.push(new CanvasButton(200,100,"Nope").
     addMouseEventListener("mouseup", function () {this.draggable = true;}));
     //crdsys.components.push(new CanvasLabel(300,300));
@@ -52,7 +54,7 @@ function start() {
     //Image
     let backImg = new Image();
     backImg.src = "https://pages.cs.wisc.edu/~zhiyuan/background.jpg";
-
+    new Test({x:1});
     window.requestAnimationFrame(Render);
 }
 
