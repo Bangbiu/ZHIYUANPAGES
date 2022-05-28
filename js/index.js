@@ -51,31 +51,19 @@ function resizeCanvas() {
 function start() {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
-
+    
+    
     let testObj = new CanvasButton({
         x:200,
-        y:220, 
-        scale: [3,3],
-        caption: "nope"
+        y:300,
+        graphics: "disc",
+        fontSize: 2,
+        scale: [1.5,2]
     });
     testObj.bindMouseEvent(canvas);
 
     console.log(testObj);
-
-    //testObj.animate("scale",[[0.01,0.01]],1);
-    //new Object2D({x:100,y:120, fillColor:[0,0,0], borderWidth:0});
-    
-    //testObj.fillColor.setCuttingFunction("warp");
-    //testObj.animate("fillColor",[[5,0,0]],1);
-    //testObj.animate("pos",[[10,10]],10,"derive");
-    
     objList.push(testObj);
-
-    /*
-    testObj.traverse(function(key,propName) {
-        console.log(this.class + " " + key + "=" + this[key]);
-    },"testObject",["object","boolean","string","number"]);
-    */
 
     //Image
     let backImg = new Image();
@@ -86,3 +74,23 @@ function start() {
 
 
 start();
+
+
+    //testObj.animate("scale",[[0.01,0.01]],1);
+    //new Object2D({x:100,y:120, fillColor:[0,0,0], borderWidth:0});
+    
+    //testObj.fillColor.setCuttingFunction("warp");
+    //testObj.animate("fillColor",[[5,0,0]],1);
+    //testObj.animate("pos",[[10,10]],10,"derive");
+    /*
+    testObj.traverse(function(key,propName) {
+        console.log(this.class + " " + key + "=" + this[key]);
+    },"testObject",["object","boolean","string","number"]);
+
+    let testObj = new SObject({
+        s: 1,
+        idk: new SObject({c:1}),
+        ddd: {cs: 12354},
+        dw: [new Rotation2D(), new Vector2D(4,0)]
+    });
+    */
