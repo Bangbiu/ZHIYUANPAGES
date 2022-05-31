@@ -1,18 +1,16 @@
-// @ts-nocheck
-/* jshint -W069, esversion:6 */
-
-
+/*jshint esversion: 6 */
+// @ts-check
 // External Lib
 import * as TU from "../lib/TypeUtil.js";
 import * as DU from "../lib/DataUtil.js";
 import { SObject } from "../lib/DataUtil.js";
 import { Vector2D } from "../lib/Vector2D.js";
 import { CoordSystem } from "../lib/CoordinateSystem.js";
-import { ContextTransf, Object2D, StageInteractive, StageObject } from "../lib/Object2D.js";
+import { ContextTransf, MouseEventMap, Object2D, StageInteractive, StageObject } from "../lib/Object2D.js";
 import { Color, ColorStates } from "../lib/ColorLib.js";
 import { Rotation2D } from "../lib/Rotation2D.js";
 import { Graphics2D, GraphicsText } from "../lib/Graphics2D.js";
-import { CanvasButton, CanvasLabel, InteractionColors } from "../lib/CanvasUIComponents.js";
+import { CanvasButton, CanvasContainer, CanvasInterativeComponent, CanvasLabel, InteractionColors } from "../lib/CanvasUIComponents.js";
 import { Test } from "../lib/Test.js";
 
 let canvas = /** @type {HTMLCanvasElement} */ (document.getElementById("mainCanvas"));
@@ -21,7 +19,7 @@ if (!(canvas instanceof HTMLCanvasElement))
 let ctx = /** @type {CanvasRenderingContext2D} */canvas.getContext("2d");
 //let context = canvas.getContext("2d");
 //let crdsys = new CoordSystem(canvas.width,canvas.height).bindMouseEvent(canvas);
-/** @type {Array<Object2D>} */ let objList = [];
+/** @type {Array<Object2D>} */ var objList = [];
 
 function Render() {
     /*
@@ -51,27 +49,42 @@ function resizeCanvas() {
 function start() {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
-    
-    
+
+    //console.log(SObject.clone(Object2D.DEF_PROP.graphics));
+
     let testObj = new CanvasButton({
-        x:200,
-        y:300,
-        graphics: "disc",
+        caption: "IDK",
+        graphics: "roundArea",
         fontSize: 2,
-        scale: [1.5,2]
-    });
-    testObj.bindMouseEvent(canvas);
+        width: 200
+    })
+    //testObj.bindMouseEvent(canvas);
+    //objList.push(testObj);
 
-    console.log(testObj);
-    objList.push(testObj);
+    let a = testObj.clone().copy({x:200}).bindMouseEvent(canvas);
+    //console.log(testObj.mouseDispatches.actor);
+    //console.log(a.mouseDispatches.actor);
+    objList.push(a);
 
-    //Image
-    let backImg = new Image();
-    backImg.src = "https://pages.cs.wisc.edu/~zhiyuan/background.jpg";
+    objList.push(
+        new CanvasContainer({
+            x:300,y:300,
+            width : 400,
+            height : 400,
+            components: [testObj,testObj.clone().copy({x:100})],
+            draggable: true
+        })
+        .bindMouseEvent(canvas)
+        .addMouseEventListener("mousedown",function(e){console.log(this.height);})
+    );
     window.requestAnimationFrame(Render);
 }
 
+self["objList"] = objList;
 
+//Image
+let backImg = new Image();
+backImg.src = "https://pages.cs.wisc.edu/~zhiyuan/background.jpg";
 
 start();
 
