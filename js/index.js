@@ -4,7 +4,7 @@
 import * as TU from "../lib/TypeUtil.js";
 import * as DU from "../lib/DataUtil.js";
 import { SObject } from "../lib/DataUtil.js";
-import { Vector2D } from "../lib/Vector2D.js";
+import { Vector2D } from "../lib/Struct.js";
 import { CoordSystem } from "../lib/CoordinateSystem.js";
 import { ContextTransf, MouseEventMap, Object2D, StageInteractive, StageObject } from "../lib/Object2D.js";
 import { Color, ColorStates } from "../lib/ColorLib.js";
@@ -20,6 +20,7 @@ if (!(canvas instanceof HTMLCanvasElement))
 let ctx = /** @type {CanvasRenderingContext2D} */canvas.getContext("2d");
 const stage = new Stage({canvas: canvas});
 
+
 function Render() {
     stage.render(ctx);
     window.requestAnimationFrame(Render);
@@ -27,19 +28,18 @@ function Render() {
 
 function start() {
     stage.fillColor = new Color("grey");
-    stage.addMouseEventListener("mousedown",function(){console.log("s");})
     const naviButtons = [];
     const naviTitles = ["Home","Research","Projects"]
     for (let i = 0; i < 3; i++) {
         naviButtons.push(new CanvasButton({
             caption: naviTitles[i],
-            graphics: "roundArea",
+            graphics: "area",
             fontSize: 2,
-            x:i*200,
+            frame: [0.33*i,0,0.33,1],
             width: 200,
             height: 200,
             stret: [1,1],
-        }).addMouseEventListener("mousedown",function(e){this.name}));
+        }).addMouseEventListener("mousedown",function(e){ console.log(this.name); }));
     }
     stage.add(
         new CanvasContainer({
@@ -49,6 +49,8 @@ function start() {
             draggable: true,
         })
     );
+
+    stage.refresh();
 
     window.requestAnimationFrame(Render);
 }
