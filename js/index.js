@@ -27,6 +27,7 @@ function Render() {
 
 function start() {
     stage.fillColor = new Color("grey");
+    stage.addMouseEventListener("mousedown",function(){console.log("s");})
     const naviButtons = [];
     const naviTitles = ["Home","Research","Projects"]
     for (let i = 0; i < 3; i++) {
@@ -43,9 +44,9 @@ function start() {
     stage.add(
         new CanvasContainer({
             width : 1000,
-            height : 1000,
+            height : 200,
             components: naviButtons,
-            //draggable: true,
+            draggable: true,
         })
     );
 
