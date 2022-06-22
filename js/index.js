@@ -39,6 +39,7 @@ function start() {
             width: 200,
             height: 200,
             stret: [1,1],
+            preset: "Warn"
         }).addMouseEventListener("mousedown",function(e){ console.log(this.name); }));
     }
     stage.add(
