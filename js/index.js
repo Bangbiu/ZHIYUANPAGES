@@ -12,75 +12,47 @@ import { Rotation2D } from "../lib/Rotation2D.js";
 import { Graphics2D, GraphicsText } from "../lib/Graphics2D.js";
 import { CanvasButton, CanvasContainer, CanvasInterativeComponent, CanvasLabel, InteractionColors } from "../lib/CanvasUIComponents.js";
 import { Test } from "../lib/Test.js";
+import { Stage } from "../lib/Stage.js";
 
 let canvas = /** @type {HTMLCanvasElement} */ (document.getElementById("mainCanvas"));
 if (!(canvas instanceof HTMLCanvasElement))
     throw new Error("Canvas is not HTML Element");
 let ctx = /** @type {CanvasRenderingContext2D} */canvas.getContext("2d");
-//let context = canvas.getContext("2d");
-//let crdsys = new CoordSystem(canvas.width,canvas.height).bindMouseEvent(canvas);
-/** @type {Array<Object2D>} */ var objList = [];
+const stage = new Stage({canvas: canvas});
 
 function Render() {
-    /*
-    crdsys.update(ctx);
-    crdsys.render(ctx);
-    */
-    //ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    objList.forEach(obj => {
-        obj.update();
-        obj.render(ctx);
-    });
-    
+    stage.render(ctx);
     window.requestAnimationFrame(Render);
-    
-}
-
-function resizeCanvas() {
-    let box = canvas.getBoundingClientRect();
-    canvas.width = window.innerWidth - box.left * 2;
-    canvas.height = window.innerHeight - box.top * 2;
-    //crdsys.resize(canvas.width,canvas.height);
-    console.clear();
-    console.log(new Vector2D(window.innerWidth,window.innerHeight));
 }
 
 function start() {
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-
-    //console.log(SObject.clone(Object2D.DEF_PROP.graphics));
-
-    let testObj = new CanvasButton({
-        caption: "IDK",
-        graphics: "roundArea",
-        fontSize: 2,
-        width: 200
-    })
-    //testObj.bindMouseEvent(canvas);
-    //objList.push(testObj);
-
-    let a = testObj.clone().copy({x:200}).bindMouseEvent(canvas);
-    //console.log(testObj.mouseDispatches.actor);
-    //console.log(a.mouseDispatches.actor);
-    objList.push(a);
-
-    objList.push(
+    stage.fillColor = new Color("grey");
+    const naviButtons = [];
+    const naviTitles = ["Home","Research","Projects"]
+    for (let i = 0; i < 3; i++) {
+        naviButtons.push(new CanvasButton({
+            caption: naviTitles[i],
+            graphics: "roundArea",
+            fontSize: 2,
+            x:i*200,
+            width: 200,
+            height: 200,
+            stret: [1,1],
+        }).addMouseEventListener("mousedown",function(e){this.name}));
+    }
+    stage.add(
         new CanvasContainer({
-            x:300,y:300,
-            width : 400,
-            height : 400,
-            components: [testObj,testObj.clone().copy({x:100})],
-            draggable: true
+            width : 1000,
+            height : 1000,
+            components: naviButtons,
+            //draggable: true,
         })
-        .bindMouseEvent(canvas)
-        .addMouseEventListener("mousedown",function(e){console.log(this.height);})
     );
+
     window.requestAnimationFrame(Render);
 }
 
-self["objList"] = objList;
+self["stage"] = stage;
 
 //Image
 let backImg = new Image();
