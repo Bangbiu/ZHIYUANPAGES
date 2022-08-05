@@ -1,16 +1,8 @@
-/*jshint esversion: 6 */
+/*jshint esversion: ES2020 */
 // @ts-check
 import { Attribution } from "./DataUtil.js";
-/**
- * @typedef {TU.TickCallBack} TickCallBack
- */
 export class Animation {
 }
-/**
- * @param {Attribution} target
- * @param {Array<TU.Referrable>} deltaArr
- * @returns {TickCallBack | undefined}
- */
 Animation.derive = function DeriveAnimation(target, deltaArr) {
     if (target == undefined)
         return undefined;
@@ -23,11 +15,6 @@ Animation.derive = function DeriveAnimation(target, deltaArr) {
         }
     };
 };
-/**
- * @param {Attribution} target
- * @param {Array<TU.Referrable>} seq
- * @returns {TickCallBack | undefined}
- */
 Animation.toggle = function ToggleAnimation(target, seq) {
     if (target == undefined)
         return undefined;
@@ -37,11 +24,6 @@ Animation.toggle = function ToggleAnimation(target, seq) {
         index = (index + 1) % seq.length;
     };
 };
-/**
- * @param {Attribution} target
- * @param {Array<TU.Referrable>} stops
- * @returns {TickCallBack | undefined}
- */
 Animation.transition = function TransitionAnimation(target, stops) {
     if (target == undefined)
         return undefined;

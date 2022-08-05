@@ -1,17 +1,16 @@
-/*jshint esversion: 6 */
+
+/*jshint esversion: ES2020 */
 // @ts-check
 import { Attribution } from "./DataUtil.js";
-/**
- * @typedef {TU.TickCallBack} TickCallBack
- */
+import { TickCallBack } from "./TypeUtil.js";
+
 export class Animation {
+    static derive: (target: Attribution, deltaArr: any[]) => TickCallBack;
+    static toggle: (target: Attribution, seq: any[]) => TickCallBack;
+    static transition: (target: Attribution, stops: any[]) => TickCallBack;
 }
-/**
- * @param {Attribution} target
- * @param {Array<TU.Referrable>} deltaArr
- * @returns {TickCallBack | undefined}
- */
-Animation.derive = function DeriveAnimation(target, deltaArr) {
+
+Animation.derive = function DeriveAnimation(target: Attribution, deltaArr: any[]): TickCallBack {
     if (target == undefined)
         return undefined;
     let deltaDpts = Attribution.attributize(deltaArr);
@@ -23,12 +22,8 @@ Animation.derive = function DeriveAnimation(target, deltaArr) {
         }
     };
 };
-/**
- * @param {Attribution} target
- * @param {Array<TU.Referrable>} seq
- * @returns {TickCallBack | undefined}
- */
-Animation.toggle = function ToggleAnimation(target, seq) {
+
+Animation.toggle = function ToggleAnimation(target: Attribution, seq: any[]): TickCallBack {
     if (target == undefined)
         return undefined;
     let index = 0;
@@ -37,12 +32,8 @@ Animation.toggle = function ToggleAnimation(target, seq) {
         index = (index + 1) % seq.length;
     };
 };
-/**
- * @param {Attribution} target
- * @param {Array<TU.Referrable>} stops
- * @returns {TickCallBack | undefined}
- */
-Animation.transition = function TransitionAnimation(target, stops) {
+
+Animation.transition = function TransitionAnimation(target: Attribution, stops: any[]): TickCallBack {
     if (target == undefined)
         return undefined;
 };
