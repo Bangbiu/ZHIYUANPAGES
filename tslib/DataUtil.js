@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Attribution_owner, _Attribution_name;
+var _Attribution_owner, _Attribution_name, _StateMap_len;
 const DATA_CLONE = "clone";
 const DATA_IDEN = "identical";
 const DATA_UNINIT = "uninit";
@@ -18,7 +18,7 @@ const ATTR_SPLITER = '.';
 const doNothing = function (...argArray) { return undefined; };
 let ASN_DEF = DATA_CLONE;
 let JSD_DEF = ["number", "boolean"];
-export { doNothing, clamp, mirror, warp, step, SObject, Attribution, EventList, ASN_DEF, JSD_DEF, DATA_IDEN, DATA_CLONE, DATA_UNINIT };
+export { doNothing, clamp, mirror, warp, step, SObject, Attribution, EventList, StateMap, ASN_DEF, JSD_DEF, DATA_IDEN, DATA_CLONE, DATA_UNINIT };
 Function.prototype["clone"] = function () {
     var cloneObj = this;
     if (this.__isClone) {
@@ -286,7 +286,7 @@ class SObject {
         return undefined;
     }
     static copy(target, source) {
-        return SObject.updateValues(target, source, ASN_DEF);
+        return SObject.updateValues(target, source, DATA_CLONE);
     }
     static clone(target) {
         switch (typeof target) {
@@ -514,3 +514,37 @@ class EventList extends SObject {
         }
     }
 }
+class StateMap extends SObject {
+    constructor(defst, states = undefined) {
+        super();
+        _StateMap_len.set(this, 0);
+        this.def = Object.assign({}, defst);
+        if (states != undefined) {
+            for (const key in states) {
+                if (key != "def") {
+                    this[key] = SObject.clone(states[key]);
+                }
+            }
+        }
+    }
+    push(state) {
+        var _a;
+        this[__classPrivateFieldGet(this, _StateMap_len, "f")] = state;
+        __classPrivateFieldSet(this, _StateMap_len, (_a = __classPrivateFieldGet(this, _StateMap_len, "f"), _a++, _a), "f");
+        return state;
+    }
+    put(key, state) {
+        this[key] = this.push(state);
+    }
+    clone(other = this.def) {
+        return new StateMap(other, this);
+    }
+    bind(defst) {
+        this.def = Object.assign({}, defst);
+        return this;
+    }
+    get length() {
+        return __classPrivateFieldGet(this, _StateMap_len, "f");
+    }
+}
+_StateMap_len = new WeakMap();

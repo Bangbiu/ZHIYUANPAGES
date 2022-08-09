@@ -1,6 +1,6 @@
 /*jshint esversion: ES2020 */
 import { Vector2D, Rect2D, Rotation2D, Color } from "./Struct.js";
-import { SObject, ASN_DEF, DATA_IDEN, DATA_UNINIT, DATA_CLONE, EventList } from "./DataUtil.js";
+import { SObject, ASN_DEF, DATA_IDEN, DATA_UNINIT, DATA_CLONE, EventList, StateMap } from "./DataUtil.js";
 import { Graphics2D } from "./Graphics2D.js";
 import { Animation } from "./Animation.js";
 import { 
@@ -19,7 +19,8 @@ import {
     TickEventProperties, 
     TickEvent,
     Transfizable, 
-    Vectorizable 
+    Vectorizable, 
+    Numerizable
 } from "./TypeUtil.js";
 
 export {
@@ -158,28 +159,23 @@ class MouseEventMap extends SObject {
     mouseleave: MouseDispatchedEvent[] = [];
     mousewheel: MouseDispatchedEvent[] = [];
 
-    protected actor: StageInteractive = undefined;
+    #actor: StageInteractive = undefined;
     
     constructor(actor: StageInteractive) {
         super();
-        this.actor = actor;
+        this.#actor = actor;
     }
 
     get eventActor(): StageInteractive {
-        return this.actor;
+        return this.#actor;
     }
 
     bind(actor: StageInteractive) {
-        this.actor = actor;
+        this.#actor = actor;
     }
 
-    copy(other: MouseEventMap): this {
-        return this;
-    }
-
-    clone(actor: StageInteractive = this.actor): MouseEventMap {
-        return new MouseEventMap(actor);
-        //return new MouseEventMap(actor).updateValues(this, DATA_CLONE);
+    clone(actor: StageInteractive = this.#actor): MouseEventMap {
+        return new MouseEventMap(actor).copy(actor);
     }
 
     addEvent(eventType: MouseEventType, callback: MouseDispatchedEvent) {
@@ -187,11 +183,14 @@ class MouseEventMap extends SObject {
     }
 
     addBehavior(behavior: MouseEventBehavior) {
-        if (behavior.name in this) this.removeBehavior(behavior.name);
+        if (behavior.bhvname in this) this.removeBehavior(behavior.bhvname);
         for (const key in behavior) {
-            if (key in this) this[key].push(behavior[key]);
+            if (key in this) {
+                
+                this[key].push(behavior[key]);
+            }
         }
-        this[behavior.name] = behavior;
+        this[behavior.bhvname] = behavior;
     }
 
     removeBehavior(behvrName: string) {
@@ -207,12 +206,12 @@ class MouseEventMap extends SObject {
 
     trigger(eventType: MouseEventType, event: ContextMouseEvent) {
         this[eventType].forEach(e => {
-            e.call(this.actor, event);
+            e.call(this.#actor, event);
         });
     }
 
     static BEHAVIOR_DRAGGABLE: MouseEventBehavior = {
-        name: "draggable",
+        bhvname: "draggable",
         mousedown: function(event) {
             if (!this.isInsideInteracting())
                 this["ctrlPt"] = event.mCtxPos.clone().sub(this.pos);
@@ -248,6 +247,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
     visible: boolean = true;
 
     tickEvents: TickEventList;
+    states: StateMap<Object2DProperties>;
 
     constructor( parameters: Object2DProperties = {} , assign = DATA_IDEN) {
         super();
@@ -262,6 +262,8 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
         //Prevent init
         if (assign == DATA_UNINIT) return this;
         super.initialize(parameters, def, assign);
+        this.tickEvents.bind(this);
+        this.states.bind(this);
         this.ID = this.constructor["CUM_INDEX"];
         return this;
     }
@@ -293,9 +295,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
         SObject.resolve(other,"fillColor", Color);
         SObject.resolve(other,"borderColor", Color);
         SObject.resolve(other,"emissiveColor", Color);
-        
-        other.tickEvents.bind(other);
-        
+
         return this;
     }
 
@@ -306,7 +306,6 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
     get x(): number {
         return this.pos.x;
     }
-
 
     set x(value: number) {
         this.pos.x = value;
@@ -349,7 +348,6 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
                 this.height,
             );
         }
-
     }
 
     get innerBound(): Rect2D {
@@ -376,6 +374,21 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
 
     clone(): Object2D {
         return new Object2D(this, DATA_CLONE);
+    }
+
+    addState(stateOrKey: Object2DProperties | Numerizable, state: Object2DProperties) {
+        if (typeof stateOrKey == "object") 
+            this.states.push(stateOrKey);
+        else 
+            this.states.put(stateOrKey, state);
+    }
+
+    switchTo(key: Numerizable) {
+        this.updateValues(this.states[key], DATA_IDEN);
+    }
+
+    restore() {
+        this.updateValues(this.states.def, DATA_IDEN);
     }
 
     isInside(x: number, y: number, ctx: CanvasRenderingContext2D): boolean {
@@ -489,7 +502,8 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
         borderWidth: 0,
         visible: true,
 
-        tickEvents: new TickEventList(undefined)
+        tickEvents: new TickEventList(undefined),
+        states: new StateMap<Object2DProperties>({})
     };
 
     static DEF_TICKEVENT: TickEventProperties = {
@@ -508,6 +522,7 @@ class StageObject extends Object2D implements StageObjectProperties {
     components: Object2D[] = [];
     innerTransf: ContextTransf;
     mainBody: boolean = true;
+    states: StateMap<StageObjectProperties>;
 
     constructor( parameters: StageObjectProperties = {} , assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);
@@ -601,6 +616,7 @@ class StageObject extends Object2D implements StageObjectProperties {
     static DEF_PROP: StageObjectProperties = SObject.insertValues({
         mainBody: true,
         innerTransf: new ContextTransf(),
+        states: new StateMap<StageObjectProperties>({})
     }, Object2D.DEF_PROP, DATA_CLONE);
 
     static CUM_INDEX: number = 0;
@@ -610,6 +626,7 @@ class StageObject extends Object2D implements StageObjectProperties {
 class StageInteractive extends StageObject implements StageInteractiveProperties {
     isMouseIn: boolean = false;
     mouseDispatches: MouseEventMap;
+    states: StateMap<StageInteractiveProperties>;
     
     constructor( parameters: StageInteractiveProperties = {}, assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);
@@ -624,17 +641,7 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
     clone(): StageInteractive {
         return new StageInteractive(this, DATA_CLONE);
     }
-/*
-    updateValues(values: Object = {}, assign: DataAssignType = DATA_CLONE): this {
-        super.updateValues(values, assign);
-        
-        if (values instanceof StageInteractive) {
-            this.mouseDispatches = values.mouseDispatches.clone(this);
-        }
-      
-        return this;
-    }
-  */
+
     resolveAll(other: StageInteractiveProperties = this): this {
         super.resolveAll(other);
         other.mouseDispatches.bind(other);
@@ -743,7 +750,8 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
     static CUM_INDEX: number = 0;
     static ObjectList: StageInteractive[] = [];
     static DEF_PROP: StageInteractiveProperties = SObject.insertValues({
-        mouseDispatches: new MouseEventMap(undefined)
+        mouseDispatches: new MouseEventMap(undefined),
+        states: new StateMap<StageInteractiveProperties>({})
     }, StageObject.DEF_PROP, DATA_CLONE);
 }
 

@@ -1,6 +1,18 @@
+var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var _MouseEventMap_actor;
 /*jshint esversion: ES2020 */
 import { Vector2D, Rect2D, Rotation2D, Color } from "./Struct.js";
-import { SObject, ASN_DEF, DATA_IDEN, DATA_UNINIT, DATA_CLONE, EventList } from "./DataUtil.js";
+import { SObject, ASN_DEF, DATA_IDEN, DATA_UNINIT, DATA_CLONE, EventList, StateMap } from "./DataUtil.js";
 import { Graphics2D } from "./Graphics2D.js";
 import { Animation } from "./Animation.js";
 export { ContextTransf, ContextMouseEvent, TickEventList, MouseEventMap, Object2D, StageObject, StageInteractive, StageDynamic, };
@@ -109,33 +121,30 @@ class MouseEventMap extends SObject {
         this.mouseenter = [];
         this.mouseleave = [];
         this.mousewheel = [];
-        this.actor = undefined;
-        this.actor = actor;
+        _MouseEventMap_actor.set(this, undefined);
+        __classPrivateFieldSet(this, _MouseEventMap_actor, actor, "f");
     }
     get eventActor() {
-        return this.actor;
+        return __classPrivateFieldGet(this, _MouseEventMap_actor, "f");
     }
     bind(actor) {
-        this.actor = actor;
+        __classPrivateFieldSet(this, _MouseEventMap_actor, actor, "f");
     }
-    copy(other) {
-        return this;
-    }
-    clone(actor = this.actor) {
-        return new MouseEventMap(actor);
-        //return new MouseEventMap(actor).updateValues(this, DATA_CLONE);
+    clone(actor = __classPrivateFieldGet(this, _MouseEventMap_actor, "f")) {
+        return new MouseEventMap(actor).copy(actor);
     }
     addEvent(eventType, callback) {
         this[eventType].push(callback);
     }
     addBehavior(behavior) {
-        if (behavior.name in this)
-            this.removeBehavior(behavior.name);
+        if (behavior.bhvname in this)
+            this.removeBehavior(behavior.bhvname);
         for (const key in behavior) {
-            if (key in this)
+            if (key in this) {
                 this[key].push(behavior[key]);
+            }
         }
-        this[behavior.name] = behavior;
+        this[behavior.bhvname] = behavior;
     }
     removeBehavior(behvrName) {
         if (behvrName in this) {
@@ -149,12 +158,13 @@ class MouseEventMap extends SObject {
     }
     trigger(eventType, event) {
         this[eventType].forEach(e => {
-            e.call(this.actor, event);
+            e.call(__classPrivateFieldGet(this, _MouseEventMap_actor, "f"), event);
         });
     }
 }
+_MouseEventMap_actor = new WeakMap();
 MouseEventMap.BEHAVIOR_DRAGGABLE = {
-    name: "draggable",
+    bhvname: "draggable",
     mousedown: function (event) {
         if (!this.isInsideInteracting())
             this["ctrlPt"] = event.mCtxPos.clone().sub(this.pos);
@@ -182,6 +192,8 @@ class Object2D extends SObject {
         if (assign == DATA_UNINIT)
             return this;
         super.initialize(parameters, def, assign);
+        this.tickEvents.bind(this);
+        this.states.bind(this);
         this.ID = this.constructor["CUM_INDEX"];
         return this;
     }
@@ -209,7 +221,6 @@ class Object2D extends SObject {
         SObject.resolve(other, "fillColor", Color);
         SObject.resolve(other, "borderColor", Color);
         SObject.resolve(other, "emissiveColor", Color);
-        other.tickEvents.bind(other);
         return this;
     }
     get name() {
@@ -264,6 +275,18 @@ class Object2D extends SObject {
     }
     clone() {
         return new Object2D(this, DATA_CLONE);
+    }
+    addState(stateOrKey, state) {
+        if (typeof stateOrKey == "object")
+            this.states.push(stateOrKey);
+        else
+            this.states.put(stateOrKey, state);
+    }
+    switchTo(key) {
+        this.updateValues(this.states[key], DATA_IDEN);
+    }
+    restore() {
+        this.updateValues(this.states.def, DATA_IDEN);
     }
     isInside(x, y, ctx) {
         ctx.save();
@@ -357,7 +380,8 @@ Object2D.DEF_PROP = {
     emissive: 0,
     borderWidth: 0,
     visible: true,
-    tickEvents: new TickEventList(undefined)
+    tickEvents: new TickEventList(undefined),
+    states: new StateMap({})
 };
 Object2D.DEF_TICKEVENT = {
     eventName: "unknow",
@@ -454,6 +478,7 @@ class StageObject extends Object2D {
 StageObject.DEF_PROP = SObject.insertValues({
     mainBody: true,
     innerTransf: new ContextTransf(),
+    states: new StateMap({})
 }, Object2D.DEF_PROP, DATA_CLONE);
 StageObject.CUM_INDEX = 0;
 class StageInteractive extends StageObject {
@@ -469,17 +494,6 @@ class StageInteractive extends StageObject {
     clone() {
         return new StageInteractive(this, DATA_CLONE);
     }
-    /*
-        updateValues(values: Object = {}, assign: DataAssignType = DATA_CLONE): this {
-            super.updateValues(values, assign);
-            
-            if (values instanceof StageInteractive) {
-                this.mouseDispatches = values.mouseDispatches.clone(this);
-            }
-          
-            return this;
-        }
-      */
     resolveAll(other = this) {
         super.resolveAll(other);
         other.mouseDispatches.bind(other);
@@ -590,7 +604,8 @@ class StageInteractive extends StageObject {
 StageInteractive.CUM_INDEX = 0;
 StageInteractive.ObjectList = [];
 StageInteractive.DEF_PROP = SObject.insertValues({
-    mouseDispatches: new MouseEventMap(undefined)
+    mouseDispatches: new MouseEventMap(undefined),
+    states: new StateMap({})
 }, StageObject.DEF_PROP, DATA_CLONE);
 class StageDynamic extends StageInteractive {
     constructor() {

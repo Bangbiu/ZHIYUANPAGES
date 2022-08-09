@@ -6,7 +6,8 @@ import {
     Setter, 
     Getter, 
     JSDataType, 
-    TraverseCallBack
+    TraverseCallBack,
+    Numerizable,
 } from "./TypeUtil";
 
 const DATA_CLONE: DataAssignType = "clone";
@@ -29,6 +30,7 @@ export {
     SObject,
     Attribution,
     EventList,
+    StateMap,
     ASN_DEF,
     JSD_DEF,
 
@@ -118,7 +120,7 @@ class SObject {
         return SObject.insertValues(this,values,assign);
     }
 
-    copy(source: Object): SObject {
+    copy(source: Object): this {
         return this.updateValues(source, ASN_DEF);
     }
 
@@ -344,7 +346,7 @@ class SObject {
     }
 
     static copy<T>(target: T, source: Object): T {
-        return SObject.updateValues(target, source, ASN_DEF);  
+        return SObject.updateValues(target, source, DATA_CLONE);  
     }
 
     static clone<T>(target: T): T {
@@ -528,7 +530,6 @@ class Attribution extends SObject {
     }
 }
 
-
 class EventList<A extends Object, T extends Function> extends SObject implements ArrayLike<T> {
 
     protected actor: A;
@@ -606,4 +607,45 @@ class EventList<A extends Object, T extends Function> extends SObject implements
         }
     }
 
+}
+
+class StateMap<T> extends SObject implements ArrayLike<T> {
+    #len = 0;
+    def: T;
+    [n: number]: T
+
+    constructor(defst: T, states: StateMap<T> = undefined) {
+        super();
+        this.def = Object.assign({}, defst);
+        if (states != undefined) {
+            for (const key in states) {
+                if (key != "def") {
+                    this[key] = SObject.clone(states[key]);
+                }
+            }
+        }
+    }
+
+    push(state: T) {
+        this[this.#len] = state;
+        this.#len++;
+        return state;
+    }
+
+    put(key: Numerizable, state: T) {
+        this[key] = this.push(state);
+    }
+
+    clone(other: T = this.def): StateMap<T> {
+        return new StateMap<T>(other, this);
+    }
+
+    bind(defst: T): this {
+        this.def = Object.assign({}, defst); 
+        return this;
+    }
+
+    get length() {
+        return this.#len;
+    }
 }

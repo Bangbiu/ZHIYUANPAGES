@@ -1,5 +1,5 @@
 
-import { SObject , Attribution} from "./DataUtil";
+import { SObject , Attribution, StateMap} from "./DataUtil";
 import { Vector2D, Color, Rect2D, Rotation2D,  } from "./Struct";
 import { Graphics2D } from "./Graphics2D";
 import { Object2D, StageInteractive, ContextTransf, ContextMouseEvent, TickEventList} from "./Object2D";
@@ -69,7 +69,7 @@ declare interface ContextTransfProperties {
 }
 
 declare interface MouseEventBehavior {
-    name: string;
+    bhvname: string;
     mousedown?: MouseDispatchedEvent;
     mouseup?: MouseDispatchedEvent;
     mousemove?: MouseDispatchedEvent;
@@ -99,6 +99,7 @@ declare interface Object2DProperties {
     borderWidth?: Numerizable;
     visible?: boolean;
     tickEvents?: TickEventList;
+    states?: StateMap<Object2DProperties>
 
     [props: string]: any
 }
@@ -106,12 +107,14 @@ declare interface Object2DProperties {
 declare interface StageObjectSubProperties {
     mainBody?: boolean;
     innerTransf?: ContextTransf | string;
+    states?: StateMap<StageObjectProperties>
 }
 
 declare type StageObjectProperties = Object2DProperties & StageObjectSubProperties;
 
 declare interface StageInteractiveSubProperties {
     draggable?: boolean;
+    states?: StateMap<StageInteractiveProperties>
 }
 
 declare type StageInteractiveProperties = StageInteractiveSubProperties & StageObjectProperties;

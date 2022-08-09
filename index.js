@@ -2,6 +2,7 @@
 import { Vector2D } from "./tslib/Struct.js";
 import * as t_SOBJ from "./tester/test_SObject.js";
 import * as t_OBJ2D from "./tester/test_Object2D.js";
+import { SObject } from "./tslib/DataUtil.js";
 
 const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById("mainCanvas"));
 const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext("2d"));
@@ -17,7 +18,7 @@ t_OBJ2D.setContext(ctx);
 //t_OBJ2D.run_ContextTransf();
 //t_OBJ2D.run_Object2D();
 //t_OBJ2D.run_StageObject();
-t_OBJ2D.run_StageInteractive();
+t_OBJ2D.run_StageInteractive(canvas);
 
 function resize() {
     const box = canvas.getBoundingClientRect();

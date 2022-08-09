@@ -129,32 +129,26 @@ export function run_StageObject() {
     
 }
 
-export function run_StageInteractive() {
+/**
+ * 
+ * @param {HTMLCanvasElement} canv 
+ */
+export function run_StageInteractive(canv) {
     let obj1 = new StageInteractive({
         pos: [100,100], 
         fillColor: "black", 
         borderColor: "red", 
-        borderWidth: 1
+        borderWidth: 1,
     });
 
+    obj1.bindMouseEvents(canv);
+    obj1.addState("press", {fillColor: new Color("blue")});
+    obj1.addMouseEventListener("mousedown", function(){this.switchTo("press")});
+    obj1.addMouseEventListener("mouseup", function(){this.restore()});
     
-
-    obj1.dispatchTickEvent(
-        function(ev){this.rot.rad+=0.1;},
-        {interval: 10, repeat: -1}
-    );
-
-    console.log("gen");
-    console.log("gen");
-    console.log("gen");
-    
+    obj1.draggable = true;
     
     let obj2 = obj1.clone();
-
-    //obj1.log("tickEvents");
-
-    console.log(obj1.pos == obj1.transf.trans);
-    console.log(obj2.pos == obj1.pos);
 
     //obj2.moveTo(200,200);
     obj2.updateValues({
@@ -165,16 +159,18 @@ export function run_StageInteractive() {
         borderColor: "black",
         borderWidth: 5,
         scale: "1.5,1.5",
-        "tickEvents.0.interval": 1
     });
 
+    obj2.bindMouseEvents(canv);
+
     obj2.add(obj1);
-    //obj1.trySet("tickEvents.0.interval", 1);
+
+    
     
     obj1.log();
     obj2.log();
 
-    //renderList.push(obj1);
+    renderList.push(obj1);
     renderList.push(obj2);
 
     render();
