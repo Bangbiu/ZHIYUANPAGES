@@ -1,12 +1,10 @@
+// @ts-check
 import { Vector2D } from "./tslib/Struct.js";
 import * as t_SOBJ from "./tester/test_SObject.js";
 import * as t_OBJ2D from "./tester/test_Object2D.js";
 
-/**
- * @type {HTMLCanvasElement}
- */
-const canvas = document.getElementById("mainCanvas");
-const ctx = canvas.getContext("2d");
+const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById("mainCanvas"));
+const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext("2d"));
 resize();
 
 //t_SOBJ.run_SObject();
@@ -15,9 +13,11 @@ resize();
 //t_SOBJ.run_Color();
 //t_SOBJ.run_Resolve();
 
-
+t_OBJ2D.setContext(ctx);
 //t_OBJ2D.run_ContextTransf();
-t_OBJ2D.run_Object2D(ctx);
+//t_OBJ2D.run_Object2D();
+//t_OBJ2D.run_StageObject();
+t_OBJ2D.run_StageInteractive();
 
 function resize() {
     const box = canvas.getBoundingClientRect();

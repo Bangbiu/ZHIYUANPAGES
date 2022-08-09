@@ -1,5 +1,4 @@
 /*jshint esversion: 6 */
-// @ts-check
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
@@ -16,10 +15,23 @@ const DATA_CLONE = "clone";
 const DATA_IDEN = "identical";
 const DATA_UNINIT = "uninit";
 const ATTR_SPLITER = '.';
-const doNothing = function (...any) { return undefined; };
+const doNothing = function (...argArray) { return undefined; };
 let ASN_DEF = DATA_CLONE;
 let JSD_DEF = ["number", "boolean"];
-export { doNothing, clamp, mirror, warp, step, SObject, Attribution, ASN_DEF, JSD_DEF, DATA_IDEN, DATA_CLONE, DATA_UNINIT };
+export { doNothing, clamp, mirror, warp, step, SObject, Attribution, EventList, ASN_DEF, JSD_DEF, DATA_IDEN, DATA_CLONE, DATA_UNINIT };
+Function.prototype["clone"] = function () {
+    var cloneObj = this;
+    if (this.__isClone) {
+        cloneObj = this.__clonedFrom;
+    }
+    var temp = function () { return cloneObj.apply(this, arguments); };
+    for (var key in this) {
+        temp[key] = this[key];
+    }
+    temp["__isClone"] = true;
+    temp["__clonedFrom"] = cloneObj;
+    return temp;
+};
 function clamp(value, max, min = 0.0) {
     if (value < min)
         return min;
@@ -63,15 +75,15 @@ class SObject {
     }
     initialize(values, def, assign = ASN_DEF) {
         this.setValues(def, DATA_CLONE);
-        this.updateValues(values, assign);
-        this.resolveAll();
-        return this;
+        return this.updateValues(values, assign);
     }
     setValues(values = {}, assign = ASN_DEF) {
         return SObject.setValues(this, values, assign);
     }
     updateValues(values = {}, assign = ASN_DEF) {
-        return SObject.updateValues(this, values, assign);
+        SObject.updateValues(this, values, assign);
+        this.resolveAll();
+        return this;
     }
     insertValues(values = {}, assign = ASN_DEF) {
         return SObject.insertValues(this, values, assign);
@@ -166,6 +178,9 @@ class SObject {
     equals(other) {
         return SObject.equals(this, other);
     }
+    static wrap(target) {
+        return (target instanceof SObject) ? target : new SObject(target);
+    }
     static tryGet(dest, propName, success, fail) {
         const gotCallBack = success ? (attr) => (success.call(dest, attr.get())) : doNothing;
         const failCallBack = fail ? () => (fail.call(dest, undefined)) : doNothing;
@@ -173,11 +188,8 @@ class SObject {
         if (attr)
             return attr.get();
     }
-    static wrap(target) {
-        return (target instanceof SObject) ? target : new SObject(target);
-    }
-    static trySet(dest, propName, value) {
-        return SObject.access(dest, propName, (attr) => (attr.set(value))) != undefined;
+    static trySet(dest, propName, value, assign = DATA_IDEN) {
+        return SObject.access(dest, propName, (attr) => (attr.set(value, assign))) != undefined;
     }
     static access(dest, propName, success, fail) {
         const attr = SObject.getAttribution(dest, propName.split(ATTR_SPLITER));
@@ -236,8 +248,12 @@ class SObject {
     }
     static updateValues(target, values, assign = ASN_DEF) {
         for (const key in values) {
-            if (key in target)
+            if (key in target) {
                 SObject.assign(target, key, values[key], assign);
+            }
+            else {
+                SObject.trySet(target, key, values[key], assign);
+            }
         }
         return target;
     }
@@ -252,6 +268,7 @@ class SObject {
         switch (type) {
             case DATA_CLONE: {
                 target[key] = SObject.clone(value);
+                //console.log(key + ":" + value);
                 break;
             }
             case DATA_IDEN: {
@@ -284,7 +301,14 @@ class SObject {
                     return res;
                 }
                 else
-                    return SObject.setValues(Object.create(target.constructor.prototype), target);
+                    return SObject.setValues(Object.create(target.constructor.prototype), target, DATA_CLONE);
+            }
+            case "function": {
+                const func = function (...argArray) {
+                    return target.call(this, ...argArray);
+                };
+                Object.assign(func, target);
+                return func;
             }
             default: {
                 return target;
@@ -380,8 +404,9 @@ class Attribution extends SObject {
     get() {
         return __classPrivateFieldGet(this, _Attribution_owner, "f")[__classPrivateFieldGet(this, _Attribution_name, "f")];
     }
-    set(value) {
-        __classPrivateFieldGet(this, _Attribution_owner, "f")[__classPrivateFieldGet(this, _Attribution_name, "f")] = value;
+    set(value, assign = DATA_IDEN) {
+        SObject.assign(__classPrivateFieldGet(this, _Attribution_owner, "f"), __classPrivateFieldGet(this, _Attribution_name, "f"), value, assign);
+        //this.#owner[this.#name] = value;
         return true;
     }
     getter(...argArray) {
@@ -428,3 +453,64 @@ class Attribution extends SObject {
     }
 }
 _Attribution_owner = new WeakMap(), _Attribution_name = new WeakMap();
+class EventList extends SObject {
+    constructor(actor = undefined) {
+        super();
+        this.len = 0;
+        this.bind(actor);
+    }
+    get length() {
+        return this.len;
+    }
+    push(elem) {
+        this[this.len] = elem;
+        this.len++;
+        return this;
+    }
+    pop() {
+        this.len--;
+        const temp = this[this.len];
+        delete this[this.len];
+        return temp;
+    }
+    clone(actor = this.actor) {
+        return new EventList(actor).copy(this);
+    }
+    bind(actor) {
+        this.actor = actor;
+    }
+    copy(other) {
+        for (let index = 0; index < other.len; index++) {
+            this.push(SObject.clone(other[index]));
+        }
+        return this;
+    }
+    trigger(...argArray) {
+        for (let index = 0; index < this.len; index++) {
+            this[index].call(this.actor, ...argArray);
+        }
+    }
+    forEach(callback) {
+        for (let index = 0; index < this.len; index++) {
+            callback.call(this, this[index]);
+        }
+    }
+    filter(predicate) {
+        const temp = [];
+        while (this.len > 0) {
+            const elem = this.pop();
+            if (predicate.call(this, elem)) {
+                temp.push(elem);
+            }
+        }
+        this.clear();
+        temp.forEach(elem => {
+            this.push(elem);
+        });
+    }
+    clear() {
+        while (this.len > 0) {
+            this.pop();
+        }
+    }
+}

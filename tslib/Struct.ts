@@ -1,5 +1,4 @@
 /*jshint esversion: ES2020 */
-// @ts-check
 
 import { clamp,  SObject } from "./DataUtil.js";
 import { 

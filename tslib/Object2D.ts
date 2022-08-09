@@ -1,7 +1,6 @@
 /*jshint esversion: ES2020 */
-// @ts-check
 import { Vector2D, Rect2D, Rotation2D, Color } from "./Struct.js";
-import { SObject, ASN_DEF, DATA_IDEN, DATA_UNINIT, DATA_CLONE } from "./DataUtil.js";
+import { SObject, ASN_DEF, DATA_IDEN, DATA_UNINIT, DATA_CLONE, EventList } from "./DataUtil.js";
 import { Graphics2D } from "./Graphics2D.js";
 import { Animation } from "./Animation.js";
 import { 
@@ -17,8 +16,8 @@ import {
     StageInteractiveProperties, 
     StageObjectProperties, 
     TickCallBack, 
-    TickEvent, 
-    TickEventProperty, 
+    TickEventProperties, 
+    TickEvent,
     Transfizable, 
     Vectorizable 
 } from "./TypeUtil.js";
@@ -26,6 +25,7 @@ import {
 export {
     ContextTransf,
     ContextMouseEvent,
+    TickEventList,
     MouseEventMap,
 
     Object2D,
@@ -114,6 +114,25 @@ class ContextTransf extends SObject implements ContextTransfProperties {
     }
 }
 
+class TickEventList extends EventList<Object2DProperties, TickEvent> {
+
+    clone(): TickEventList {
+        return new TickEventList(this.actor).copy(this);
+    }
+
+    trigger(delta: number): void {
+        this.forEach(event => {
+            event.prog += delta;
+            if (event.prog >= event.interval) {
+                event.prog = 0;
+                event.repeat--;
+                event.call(this.actor, event);
+            }
+        });
+        this.filter((event)=>(event.repeat != 0));
+    }
+}
+
 class ContextMouseEvent {
     /** @type {MouseEvent | WheelEvent} Event Arguments*/ info: MouseEventInfo;
     /** @type {Vector2D} Absolute Mouse Position*/        mousePos;
@@ -150,8 +169,17 @@ class MouseEventMap extends SObject {
         return this.actor;
     }
 
+    bind(actor: StageInteractive) {
+        this.actor = actor;
+    }
+
+    copy(other: MouseEventMap): this {
+        return this;
+    }
+
     clone(actor: StageInteractive = this.actor): MouseEventMap {
-        return new MouseEventMap(actor).updateValues(this, DATA_CLONE);
+        return new MouseEventMap(actor);
+        //return new MouseEventMap(actor).updateValues(this, DATA_CLONE);
     }
 
     addEvent(eventType: MouseEventType, callback: MouseDispatchedEvent) {
@@ -219,7 +247,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
     borderWidth: number = 0.0;
     visible: boolean = true;
 
-    tickEvents: TickEvent[] = [];
+    tickEvents: TickEventList;
 
     constructor( parameters: Object2DProperties = {} , assign = DATA_IDEN) {
         super();
@@ -265,7 +293,9 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
         SObject.resolve(other,"fillColor", Color);
         SObject.resolve(other,"borderColor", Color);
         SObject.resolve(other,"emissiveColor", Color);
-
+        
+        other.tickEvents.bind(other);
+        
         return this;
     }
 
@@ -373,17 +403,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
     }
     
     update(delta: number = 1) {
-        this.tickEvents.forEach(e => {
-            if (e == undefined) return;
-            e.prog += delta;
-            if (e.prog >= e.interval) {
-                e.prog = 0;
-                e.repeat--;
-                if (e.repeat == 0) 
-                    this.tickEvents.splice(this.tickEvents.indexOf(e), 1);
-                e.call(this,e);
-            }
-        });
+        this.tickEvents.trigger(delta);
     } 
 
     render(ctx: CanvasRenderingContext2D = Object2D.DefaultContext) {
@@ -409,10 +429,9 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
         ctx.restore();
     }
 
-    dispatchTickEvent(callback: TickCallBack, settings: TickEventProperty = {}): TickEvent {
-        SObject.insertValues(settings, Object2D.DEF_EVENT);
-        let event: TickEvent = Object.assign(callback, settings);
-        this.tickEvents.push(event);
+    dispatchTickEvent(callback: TickCallBack, settings: TickEventProperties = {}): TickEvent {
+        const event = Object.assign(callback, Object2D.DEF_TICKEVENT);
+        this.tickEvents.push(Object.assign(event, settings));
         return event;
     }
 
@@ -422,7 +441,6 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
             interval: life
         });
     }
-
 
     animate(propText: string, data: any[], interval: number=1, type: AnimationType = "derive"): TickEvent {
         let attr = this.access(propText);
@@ -457,57 +475,57 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
     static DEF_PROP: Object2DProperties = {
         frame: undefined,
         pos: new Vector2D(),
-        scale: "1,1",
-        stret: "1,1",
+        scale: new Vector2D(1,1),
+        stret: new Vector2D(1,1),
         rot: 0,
         transf: undefined,
         graphics: "square",
 
-        fillColor: "white",
-        borderColor: "black",
+        fillColor: new Color("white"),
+        borderColor: new Color("black"),
         emissiveColor: undefined,
 
         emissive: 0,
         borderWidth: 0,
         visible: true,
 
-        tickEvents: []
+        tickEvents: new TickEventList(undefined)
     };
 
-    static DEF_EVENT: TickEventProperty = {
-        eventName: "unknown",
-        repeat: 1,
+    static DEF_TICKEVENT: TickEventProperties = {
+        eventName: "unknow",
+        prog: 0,
         interval: 100,
-        prog: 0
+        repeat: -1,
     }
 
     static CUM_INDEX: number = 0;
 
 }
 
-class StageObject extends Object2D implements StageObjectProperties{
+class StageObject extends Object2D implements StageObjectProperties {
 
     components: Object2D[] = [];
     innerTransf: ContextTransf;
     mainBody: boolean = true;
 
     constructor( parameters: StageObjectProperties = {} , assign: DataAssignType = DATA_IDEN) {
-        super({},DATA_UNINIT);
-        this.initialize(parameters,StageObject.DEF_PROP,assign);
+        super({}, DATA_UNINIT);
+        this.initialize(parameters, StageObject.DEF_PROP, assign);
         StageObject.CUM_INDEX++;
     }
 
     set pivot(value: Vectorizable) {
-        this.innerTransf.trans =  new Vector2D(value).scaleXY(this.width,this.height);
+        this.innerTransf.trans =  new Vector2D(value).scaleXY(this.width, this.height);
     }
 
-    add(comp: Object2D) {
+    add(comp: Object2D): this {
         this.components.push(comp);
         return this;
     }
 
     clone(): StageObject {
-        return new StageObject(this);
+        return new StageObject(this, DATA_CLONE);
     }
 
     toInternal<T>(ctxOrPos: T): T {
@@ -583,20 +601,19 @@ class StageObject extends Object2D implements StageObjectProperties{
     static DEF_PROP: StageObjectProperties = SObject.insertValues({
         mainBody: true,
         innerTransf: new ContextTransf(),
-    }, Object2D.DEF_PROP);
+    }, Object2D.DEF_PROP, DATA_CLONE);
 
     static CUM_INDEX: number = 0;
 }
 
 
-class StageInteractive extends StageObject {
+class StageInteractive extends StageObject implements StageInteractiveProperties {
     isMouseIn: boolean = false;
     mouseDispatches: MouseEventMap;
     
     constructor( parameters: StageInteractiveProperties = {}, assign: DataAssignType = DATA_IDEN) {
-        super({},DATA_UNINIT);
-        this.mouseDispatches = new MouseEventMap(this);
-        this.initialize(parameters,StageInteractive.DEF_PROP,assign);
+        super({}, DATA_UNINIT);
+        this.initialize(parameters, StageInteractive.DEF_PROP, assign);
         StageInteractive.CUM_INDEX++;
     }
 
@@ -605,14 +622,22 @@ class StageInteractive extends StageObject {
     }
 
     clone(): StageInteractive {
-        return new StageInteractive(this);
+        return new StageInteractive(this, DATA_CLONE);
     }
-
+/*
     updateValues(values: Object = {}, assign: DataAssignType = DATA_CLONE): this {
-        super.updateValues(values,assign);
+        super.updateValues(values, assign);
+        
         if (values instanceof StageInteractive) {
             this.mouseDispatches = values.mouseDispatches.clone(this);
         }
+      
+        return this;
+    }
+  */
+    resolveAll(other: StageInteractiveProperties = this): this {
+        super.resolveAll(other);
+        other.mouseDispatches.bind(other);
         return this;
     }
 
@@ -717,6 +742,9 @@ class StageInteractive extends StageObject {
 
     static CUM_INDEX: number = 0;
     static ObjectList: StageInteractive[] = [];
+    static DEF_PROP: StageInteractiveProperties = SObject.insertValues({
+        mouseDispatches: new MouseEventMap(undefined)
+    }, StageObject.DEF_PROP, DATA_CLONE);
 }
 
 class StageDynamic extends StageInteractive {

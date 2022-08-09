@@ -2,7 +2,7 @@
 import { SObject , Attribution} from "./DataUtil";
 import { Vector2D, Color, Rect2D, Rotation2D,  } from "./Struct";
 import { Graphics2D } from "./Graphics2D";
-import { Object2D, StageInteractive, ContextTransf, ContextMouseEvent } from "./Object2D";
+import { Object2D, StageInteractive, ContextTransf, ContextMouseEvent, TickEventList} from "./Object2D";
 
 // Types
 declare type MouseEventType =  "mousedown"|"mouseup"|"mousemove"|"mouseenter"|"mouseleave"|"wheel";
@@ -37,7 +37,7 @@ declare type Polygon = [number, number][];
 declare type EclipseParam = [number, number, number, number, number, number, number, boolean];
 
 declare type TickCallBack = (this: Object2D, ev: TickEvent) => any;
-declare type TickEvent = TickEventProperty & TickCallBack;
+declare type TickEvent = TickCallBack & TickEventProperties;
 
 declare type MouseEventInfo = MouseEvent | WheelEvent;
 declare type MouseDispatchedEvent = (this: StageInteractive, event: ContextMouseEvent) => any;
@@ -50,7 +50,12 @@ declare interface Renderable {
     render(ctx: CanvasRenderingContext2D): void
 }
 
-declare interface TickEventProperty {
+declare interface EventHandler {
+    target: Object2D
+    callback: Function
+}
+
+declare interface TickEventProperties {
     eventName?: string;
     repeat?: number;
     interval?: number;
@@ -93,7 +98,9 @@ declare interface Object2DProperties {
     emissive?: Numerizable;
     borderWidth?: Numerizable;
     visible?: boolean;
-    tickEvents?: TickEvent[];
+    tickEvents?: TickEventList;
+
+    [props: string]: any
 }
 
 declare interface StageObjectSubProperties {

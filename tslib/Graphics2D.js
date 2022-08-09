@@ -1,5 +1,4 @@
 /*jshint esversion: ES2020 */
-// @ts-check
 import { SObject } from "./DataUtil.js";
 import { Vector2D, Rect2D } from "./Struct.js";
 export { Graphics2D, GraphicsText, POLY, PATH };
