@@ -35,6 +35,8 @@ class Graphics2D extends SObject {
     constructor(graphi) {
         super();
         this.path = undefined;
+        if (graphi == undefined)
+            return;
         if (typeof graphi == "string") {
             if (PATH[graphi] != undefined) {
                 this.path = Graphics2D.parsePath(PATH[graphi]);

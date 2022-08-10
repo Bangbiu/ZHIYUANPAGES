@@ -58,6 +58,7 @@ class Graphics2D extends SObject {
 
     constructor(graphi?: Graphizable) {
         super();
+        if (graphi == undefined) return;
         if (typeof graphi == "string") {
             if (PATH[graphi] != undefined) {
                 this.path = Graphics2D.parsePath(PATH[graphi]);
@@ -256,12 +257,9 @@ class GraphicsText extends Graphics2D {
         ctx.scale(...scale.value);
         ctx.textAlign = "center";
         ctx.textBaseline = "middle"
-        if (stroke) {
-            ctx.strokeText(this.text,0,0);
-        } 
-        if (fill) {
-            ctx.fillText(this.text,0,0);
-        }
+        if (stroke) ctx.strokeText(this.text,0,0);
+
+        if (fill) ctx.fillText(this.text,0,0);
         ctx.restore();
     }
 

@@ -99,15 +99,15 @@ declare interface Object2DProperties {
     borderWidth?: Numerizable;
     visible?: boolean;
     tickEvents?: TickEventList;
-    states?: StateMap<Object2DProperties>
+    states?: StateMap<Object2DProperties>;
 
-    [props: string]: any
+    [props: string]: any;
 }
 
 declare interface StageObjectSubProperties {
     mainBody?: boolean;
     innerTransf?: ContextTransf | string;
-    states?: StateMap<StageObjectProperties>
+    states?: StateMap<StageObjectProperties>;
 }
 
 declare type StageObjectProperties = Object2DProperties & StageObjectSubProperties;
@@ -119,54 +119,42 @@ declare interface StageInteractiveSubProperties {
 
 declare type StageInteractiveProperties = StageInteractiveSubProperties & StageObjectProperties;
 
+declare interface CanvasLabelSubProperties {
+    text?: string;
+    fontColor?: Colorizable;
+    fontSize?: number;
+}
 
+declare type CanvasLabelProperties = Object2DProperties & CanvasLabelSubProperties;
 
+declare interface CanvasIntCompSubProperites {
+    preset?: string;
+}
+
+declare type CanvasIntCompProperites = StageInteractiveProperties & CanvasIntCompSubProperites;
+
+declare interface CanvasButtonSubProperties {
+    caption?: string;
+    foreColor?: Colorizable;
+    fontSize?: number;
+}
+
+declare type CanvasButtonProperties = CanvasIntCompProperites & CanvasButtonSubProperties;
+
+declare interface CanvasContainerSubProperties {
+    title?: string;
+    Grid?: Vectorizable;
+}
+
+declare type CanvasContainerProperties = CanvasIntCompProperites & CanvasContainerSubProperties;
+
+declare interface StageProperties {
+    canvas: HTMLCanvasElement
+    backColor?: Colorizable
+}
 
 /**
 //Components
-
-/**
- * IntColorProperties
- * 
- * @typedef {Object} IntColorProperties
- * @property {Colorizable} [defalutColor="white"]
- * @property {Colorizable} [hoverColor="white"]
- * @property {Colorizable} [pressedColor="white"]
- * 
- */
-
-/**
- * CanvasLabelProperties
- * 
- * @typedef {Object} CanvasLabelSubProperties
- * @property {string} [text="Label"]
- * @property {Colorizable} [fontColor="black"]
- * @property {number} [fontSize=1]
- * 
- * @typedef {Object2DProperties & CanvasLabelSubProperties} CanvasLabelProperties
- */
-
-/**
- * CanvasInterativeComponentProperites
- * 
- * @typedef {Object} CanvasIntCompSubProperites
- * @property {string} [preset="Classic"]
- * 
- * @typedef {StageInteractiveProperties & CanvasIntCompSubProperites} CanvasIntCompProperites
- * 
- */
-
-/**
- * CanvasButtonProperties
- * 
- * @typedef {Object} CanvasButtonSubProperties
- * @property {string} [caption="Button"]
- * @property {Colorizable} [foreColor="black"]
- * @property {number} [fontSize = 1]
- * 
- * @typedef {CanvasIntCompProperites & CanvasButtonSubProperties} CanvasButtonProperties
- */
-
 /**
  * ButtonStyle
  * 
@@ -179,30 +167,4 @@ declare type StageInteractiveProperties = StageInteractiveSubProperties & StageO
  * @property {Vectorizable} [scale="1,1"]
  * @property {Vectorizable} [stret="1,1"]
 
- */
-
-/**
- * 
- * CanvasContainerProperties
- * @typedef {Object} CanvasContainerSubProperties
- * @property {string} [title="Container"]
- * @property {Array<Object2D>} [components=[]]
- * @property {Vectorizable} [Grid=undefined]
- * 
- * @typedef {CanvasIntCompProperites & CanvasContainerSubProperties} CanvasContainerProperties
- * 
- * 
- */
-
-
-//Stages
-/**
- * 
- * StageProperties
- * 
- * @typedef {Object} StageProperties
- * @property {HTMLCanvasElement} canvas
- * @property {Colorizable} [backColor="black"]
- * 
- * 
  */

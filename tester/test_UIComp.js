@@ -5,6 +5,7 @@ import { Graphics2D } from "../tslib/Graphics2D.js";
 import { Color, Vector2D } from "../tslib/Struct.js";
 import { Animation } from "../tslib/Animation.js";
 import { ContextTransf, Object2D, StageInteractive, StageObject } from "../tslib/Object2D.js";
+import { CanvasButton, CanvasLabel } from "../tslib/CanvasUIComponents.js";
 
 /** @type {import("../tslib/TypeUtil.js").Renderable[]} */
 const renderList = [];
@@ -22,122 +23,43 @@ export function setCanvas(canvas) {
     ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext("2d"));
 }
 
-export function run_Graphics2D() {
-    
-    let g = new Graphics2D([[100,100],[200,200],[100,200]]);
-    g.log();
-    ctx.fillStyle = new Color(255,0,0).value;
-    g.render(ctx,false,true);
-    
-}
-
-export function run_ContextTransf() {
-    
-    
-    let ctxtf = new ContextTransf("1,1|2|3,3");
-    
-    ctxtf.print();
-    console.log(ctxtf.clone().trans == ctxtf.trans);
-
-    ctxtf.add(ctxtf).print();
-    //ctxtf.traverse(function(k,v){console.log(v);});
-}
-
-
-export function run_Object2D() {
-
-    let obj1 = new Object2D({
+export function run_CanvasLabel() {
+    let obj1 = new CanvasLabel({
+        text: "nope",
         pos: [100,100], 
         fillColor: "black", 
         borderColor: "red", 
-        borderWidth: 1
+        scale: [3,3]
     });
-
-    obj1.dispatchTickEvent(
-        function(ev){this.rot.rad+=0.1;},
-        {interval: 10, repeat: -1}
-    );
-
+    
     let obj2 = obj1.clone();
 
-    //obj1.log("tickEvents");
-
-    console.log(obj1.pos == obj1.transf.trans);
-    console.log(obj2.pos == obj1.pos);
-
-    //obj2.moveTo(200,200);
     obj2.updateValues({
         pos: "200,200",
         transf: "300,300|45|1,1",
-        graphics: "roundArea",
         fillColor: "red",
         borderColor: "black",
         borderWidth: 5,
-        scale: "1.5,1.5"
+        scale: "2.5,2.5",
     });
-    
+
+    obj2.add(obj1);
+
+    obj1.dispatchTickEvent(
+        function(ev) { this.rot.rad+=0.1; },
+        {interval: 5, repeat: -1}
+    );
     obj1.log();
     obj2.log();
-
 
     renderList.push(obj1);
     renderList.push(obj2);
 
     render();
-    
 }
 
-export function run_StageObject() {
-    let obj1 = new StageObject({
-        pos: [100,100], 
-        fillColor: "black", 
-        borderColor: "red", 
-        borderWidth: 1
-    });
-
-    obj1.dispatchTickEvent(
-        function(ev){this.rot.rad+=0.1;},
-        {interval: 10, repeat: -1}
-    );
-
-    let obj2 = obj1.clone();
-
-    //obj1.log("tickEvents");
-
-    console.log(obj1.pos == obj1.transf.trans);
-    console.log(obj2.pos == obj1.pos);
-
-    //obj2.moveTo(200,200);
-    obj2.updateValues({
-        pos: "200,200",
-        transf: "300,300|45|1,1",
-        graphics: "roundArea",
-        fillColor: "red",
-        borderColor: "black",
-        borderWidth: 5,
-        scale: "1.5,1.5",
-        "tickEvents.0.interval": 1
-    });
-
-    obj2.add(obj1);
-    //obj1.trySet("tickEvents.0.interval", 1);
-    
-    obj1.log();
-    obj2.log();
-
-    //renderList.push(obj1);
-    renderList.push(obj2);
-
-    render();
-    
-}
-
-/**
- * 
- * @param {HTMLCanvasElement} canv 
- */
-export function run_StageInteractive(canv) {
-    let obj1 = new StageInteractive({
+ export function run_CanvasButton() {
+    let obj1 = new CanvasButton({
         pos: [100,100], 
         fillColor: "black", 
         borderColor: "red", 
@@ -180,6 +102,7 @@ export function run_StageInteractive(canv) {
 
     render();
 }
+
 
 
 function render(timestamp) {

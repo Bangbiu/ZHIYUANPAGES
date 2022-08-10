@@ -614,7 +614,7 @@ class StateMap<T> extends SObject implements ArrayLike<T> {
     def: T;
     [n: number]: T
 
-    constructor(defst: T, states: StateMap<T> = undefined) {
+    constructor(defst: T, states: Object = undefined) {
         super();
         this.def = Object.assign({}, defst);
         if (states != undefined) {
