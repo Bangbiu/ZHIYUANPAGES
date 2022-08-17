@@ -1,7 +1,7 @@
 /*jshint esversion: ES2020 */
 import { SObject } from "./DataUtil.js";
 import { Vector2D, Rect2D } from "./Struct.js";
-import { EclipseParam, Graphizable, ParsedPath, Polygon } from "./TypeUtil";
+import { EclipseParam, Graphizable, ParsedPath, Polygon, Renderable } from "./TypeUtil";
 
 export {
     Graphics2D,
@@ -51,7 +51,7 @@ interface PathPreset {
     readonly [propName: string]: string;
 }
 
-class Graphics2D extends SObject {
+class Graphics2D extends SObject implements Renderable {
     protected path: ParsedPath = undefined;
     //renderPath: Path2D;
     bound: Rect2D;
@@ -197,6 +197,10 @@ class Graphics2D extends SObject {
                 }
             }
         });
+    }
+
+    update() {
+        
     }
 
     render(ctx: CanvasRenderingContext2D, stroke: boolean = Graphics2D.DEF_STROKE,fill: boolean = Graphics2D.DEF_FILL,

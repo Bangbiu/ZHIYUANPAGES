@@ -15,14 +15,16 @@ resize();
 //t_SOBJ.run_Color();
 //t_SOBJ.run_Resolve();
 
-//t_OBJ2D.setContext(ctx);
+//t_OBJ2D.setCanvas(canvas);
 //t_OBJ2D.run_ContextTransf();
 //t_OBJ2D.run_Object2D();
 //t_OBJ2D.run_StageObject();
 //t_OBJ2D.run_StageInteractive(canvas);
+//t_OBJ2D.run_StateSwitching();
 
 t_COMP.setCanvas(canvas);
-t_COMP.run_CanvasLabel();
+//t_COMP.run_CanvasLabel();
+t_COMP.run_CanvasButton();
 
 
 function resize() {

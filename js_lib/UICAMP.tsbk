@@ -53,6 +53,7 @@ class CanvasLabel extends CanvasDisplayComponent {
     constructor( parameters: CanvasLabelProperties = {}, assign: DataAssignType = DATA_IDEN) {
          super({}, DATA_UNINIT);
          this.initialize(parameters, CanvasLabel.DEF_PROP, assign);
+         CanvasLabel.CUM_INDEX++;
     }
 
     /**
@@ -104,7 +105,10 @@ class CanvasButton extends CanvasInterativeComponent {
     constructor( parameters: CanvasButtonProperties = {} , assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);
         this.captionLabel = new CanvasLabel({text: "Button"});
+
         this.initialize(parameters,CanvasButton.DEF_PROP,assign);
+        this.refresh();
+        CanvasButton.CUM_INDEX++;
     }
 
     clone(): CanvasButton {
@@ -164,28 +168,25 @@ class CanvasButton extends CanvasInterativeComponent {
     }
 
     render(ctx: CanvasRenderingContext2D): void {
-        super.render(ctx,this.captionLabel);
+        super.render(ctx,[this.captionLabel]);
     }
 
     //Statics
     static DEF_PROP: CanvasButtonProperties = SObject.insertValues({
         fillColor: new Color("#1d89ff"),
         foreColor: new Color("white"),
-        borderColor:new Color("#1d89ff"),
+        borderColor:new Color("transparent"),
         borderWidth: 3,
-        states: new InteractionStates({
-            def: {
-                foreColor: new Color("white"),
-            },
+        states: new InteractionStates({}, {
             hovered: {
                 fillColor: new Color("white"),
                 foreColor: new Color("#1d89ff"),
-                borderColor: new Color("#1d89ff")
+                borderColor: new Color("white")
             },
             pressed: {
-                fillColor: new Color("#DDDDDD"),
+                fillColor: new Color("white"),
                 foreColor: new Color("#1d89ff"),
-                borderColor: new Color("#1d89ff")
+                borderColor: new Color("white")
             }
         })
     }, CanvasInterativeComponent.DEF_PROP, DATA_CLONE);

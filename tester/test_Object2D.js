@@ -50,7 +50,9 @@ export function run_Object2D() {
         pos: [100,100], 
         fillColor: "black", 
         borderColor: "red", 
-        borderWidth: 1
+        borderWidth: 1,
+        stret: [2,1],
+        scale: [1,2]
     });
 
     obj1.dispatchTickEvent(
@@ -65,7 +67,8 @@ export function run_Object2D() {
     console.log(obj1.pos == obj1.transf.trans);
     console.log(obj2.pos == obj1.pos);
 
-    //obj2.moveTo(200,200);
+    obj2.moveTo(200,200);
+    
     obj2.updateValues({
         pos: "200,200",
         transf: "300,300|45|1,1",
@@ -73,8 +76,8 @@ export function run_Object2D() {
         fillColor: "red",
         borderColor: "black",
         borderWidth: 5,
-        scale: "1.5,1.5"
     });
+    
     
     obj1.log();
     obj2.log();
@@ -175,6 +178,38 @@ export function run_StageInteractive(canv) {
     obj1.log();
     obj2.log();
 
+    renderList.push(obj1);
+    renderList.push(obj2);
+
+    render();
+}
+
+export function run_StateSwitching() {
+    let obj1 = new Object2D({
+        pos: [100,100], 
+        fillColor: "black", 
+        borderColor: "red", 
+        borderWidth: 1,
+    });
+
+    obj1.addState("nope", {fillColor: "red", borderColor: "purple", graphics: "heart"});
+    obj1.switchTo("nope");
+
+    let obj2 = obj1.clone();
+    obj2.updateValues({
+        pos: [300,300],
+    })
+
+    obj2.restore();
+    obj2.addState("state3", {graphics: "disc", fillColor: "yellow"});
+
+    obj2.dispatchTickEvent(function(ev){this.toggle()}, {interval: 50, repeat: -1});
+
+    //obj2.switchTo(0);
+
+    obj1.log();
+    obj2.log();
+    
     renderList.push(obj1);
     renderList.push(obj2);
 

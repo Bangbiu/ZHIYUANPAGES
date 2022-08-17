@@ -78,6 +78,11 @@ declare interface MouseEventBehavior {
     mousewheel?: MouseDispatchedEvent;
 }
 
+declare interface Polymorphistic {
+    states: StateMap<Object> | undefined
+    addState(stateOrKey: Object | Numerizable, state?: Object): void;
+}
+
 declare interface Object2DProperties {
     name?: string;
     x?: Numerizable;
@@ -100,6 +105,8 @@ declare interface Object2DProperties {
     visible?: boolean;
     tickEvents?: TickEventList;
     states?: StateMap<Object2DProperties>;
+
+    debug?: boolean;
 
     [props: string]: any;
 }
@@ -135,6 +142,7 @@ declare type CanvasIntCompProperites = StageInteractiveProperties & CanvasIntCom
 
 declare interface CanvasButtonSubProperties {
     caption?: string;
+    avatar?: Graphizable;
     foreColor?: Colorizable;
     fontSize?: number;
 }

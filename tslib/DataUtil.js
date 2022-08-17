@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Attribution_owner, _Attribution_name, _StateMap_len;
+var _Attribution_owner, _Attribution_name, _StateMap_len, _StateMap_target, _StateMap_curState;
 const DATA_CLONE = "clone";
 const DATA_IDEN = "identical";
 const DATA_UNINIT = "uninit";
@@ -279,7 +279,7 @@ class SObject {
         return target;
     }
     static resolve(target, key, cls) {
-        if (key in target && !(target[key] instanceof cls)) {
+        if (key in target && !(target[key] instanceof cls) && target[key] != undefined) {
             target[key] = new cls(target[key]);
             return target[key];
         }
@@ -515,36 +515,88 @@ class EventList extends SObject {
     }
 }
 class StateMap extends SObject {
-    constructor(defst, states = undefined) {
+    constructor(states = {}, initInd = 0) {
         super();
         _StateMap_len.set(this, 0);
-        this.def = Object.assign({}, defst);
-        if (states != undefined) {
+        _StateMap_target.set(this, undefined);
+        _StateMap_curState.set(this, 0);
+        this.push({}); //Default State
+        if (states instanceof StateMap) {
             for (const key in states) {
-                if (key != "def") {
-                    this[key] = SObject.clone(states[key]);
-                }
+                this[key] = SObject.clone(states[key]);
+            }
+            __classPrivateFieldSet(this, _StateMap_len, __classPrivateFieldGet(states, _StateMap_len, "f"), "f");
+        }
+        else if (states instanceof Object) {
+            for (const key in states) {
+                if (key == "def")
+                    this[0] = SObject.clone(states[key]);
+                else
+                    this.put(key, SObject.clone(states[key]));
             }
         }
+        __classPrivateFieldSet(this, _StateMap_curState, initInd, "f");
     }
     push(state) {
         var _a;
         this[__classPrivateFieldGet(this, _StateMap_len, "f")] = state;
+        if (__classPrivateFieldGet(this, _StateMap_target, "f") != undefined) {
+            for (const key in state) {
+                this[0][key] = __classPrivateFieldGet(this, _StateMap_target, "f")[key];
+            }
+        }
         __classPrivateFieldSet(this, _StateMap_len, (_a = __classPrivateFieldGet(this, _StateMap_len, "f"), _a++, _a), "f");
-        return state;
+        return __classPrivateFieldGet(this, _StateMap_len, "f") - 1;
     }
     put(key, state) {
-        this[key] = this.push(state);
+        if (key in this)
+            this[key] = state;
+        else
+            this[key] = this.push(state);
     }
-    clone(other = this.def) {
-        return new StateMap(other, this);
+    get(key) {
+        if (typeof key == "number") {
+            return this[key];
+        }
+        else {
+            return this[this[key]];
+        }
     }
-    bind(defst) {
-        this.def = Object.assign({}, defst);
+    fetch() {
+        return this[__classPrivateFieldGet(this, _StateMap_curState, "f")];
+    }
+    swtichTo(key) {
+        const state = this.get(key);
+        if (state != undefined)
+            __classPrivateFieldSet(this, _StateMap_curState, key, "f");
+        return state;
+    }
+    toggle() {
+        if (typeof __classPrivateFieldGet(this, _StateMap_curState, "f") != "number") {
+            __classPrivateFieldSet(this, _StateMap_curState, this[__classPrivateFieldGet(this, _StateMap_curState, "f")], "f");
+        }
+        __classPrivateFieldSet(this, _StateMap_curState, (__classPrivateFieldGet(this, _StateMap_curState, "f") + 1) % __classPrivateFieldGet(this, _StateMap_len, "f"), "f");
+        return this.fetch();
+    }
+    clone(other = __classPrivateFieldGet(this, _StateMap_target, "f")) {
+        return new StateMap(this, __classPrivateFieldGet(this, _StateMap_curState, "f")).bind(other);
+    }
+    bind(target) {
+        if (target == undefined)
+            return this;
+        __classPrivateFieldSet(this, _StateMap_target, target, "f");
+        for (let index = 1; index < __classPrivateFieldGet(this, _StateMap_len, "f"); index++) {
+            for (const key in this[index]) {
+                this[0][key] = __classPrivateFieldGet(this, _StateMap_target, "f")[key];
+            }
+        }
         return this;
+    }
+    get currentState() {
+        return __classPrivateFieldGet(this, _StateMap_curState, "f");
     }
     get length() {
         return __classPrivateFieldGet(this, _StateMap_len, "f");
     }
 }
-_StateMap_len = new WeakMap();
+_StateMap_len = new WeakMap(), _StateMap_target = new WeakMap(), _StateMap_curState = new WeakMap();

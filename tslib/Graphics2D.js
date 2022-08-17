@@ -176,6 +176,8 @@ class Graphics2D extends SObject {
             }
         });
     }
+    update() {
+    }
     render(ctx, stroke = Graphics2D.DEF_STROKE, fill = Graphics2D.DEF_FILL, scale = Graphics2D.DEF_SCALE) {
         ctx.beginPath();
         this.tracePath(ctx, scale);
@@ -223,12 +225,10 @@ class GraphicsText extends Graphics2D {
         ctx.scale(...scale.value);
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        if (stroke) {
+        if (stroke)
             ctx.strokeText(this.text, 0, 0);
-        }
-        if (fill) {
+        if (fill)
             ctx.fillText(this.text, 0, 0);
-        }
         ctx.restore();
     }
     tracePath(ctx, scale = Graphics2D.DEF_SCALE) {

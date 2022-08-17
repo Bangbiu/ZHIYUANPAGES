@@ -338,7 +338,7 @@ class SObject {
     }
 
     static resolve(target: Object, key: string, cls: any): any {
-        if (key in target && !(target[key] instanceof cls)){
+        if (key in target && !(target[key] instanceof cls) && target[key] != undefined) {
             target[key] = new cls(target[key]);
             return target[key];
         }
@@ -611,41 +611,95 @@ class EventList<A extends Object, T extends Function> extends SObject implements
 
 class StateMap<T> extends SObject implements ArrayLike<T> {
     #len = 0;
-    def: T;
+    #target: T = undefined;
+    #curState: Numerizable = 0;
     [n: number]: T
 
-    constructor(defst: T, states: Object = undefined) {
+    constructor(states: Object = {}, initInd: Numerizable = 0) {
         super();
-        this.def = Object.assign({}, defst);
-        if (states != undefined) {
+        this.push({} as T);                 //Default State
+        if (states instanceof StateMap) {
             for (const key in states) {
-                if (key != "def") {
-                    this[key] = SObject.clone(states[key]);
-                }
+                this[key] = SObject.clone(states[key]);
+            }
+            this.#len = states.#len;
+        } else if (states instanceof Object) {
+            for (const key in states) {
+                if (key == "def") 
+                    this[0] = SObject.clone(states[key]);
+                else
+                    this.put(key, SObject.clone(states[key]));
             }
         }
+        this.#curState = initInd;
     }
 
-    push(state: T) {
+    push(state: T): number {
         this[this.#len] = state;
+        if (this.#target != undefined) {
+            for (const key in state) {
+                this[0][key] = this.#target[key];
+            }
+        }
         this.#len++;
-        return state;
+        return this.#len - 1;
     }
 
     put(key: Numerizable, state: T) {
-        this[key] = this.push(state);
+        if (key in this)
+            this[key] = state;
+        else 
+            this[key] = this.push(state);
     }
 
-    clone(other: T = this.def): StateMap<T> {
-        return new StateMap<T>(other, this);
+    get(key: Numerizable): T {
+        if (typeof key == "number") {
+            return this[key];
+        } else {
+            return this[this[key]];
+        }
     }
 
-    bind(defst: T): this {
-        this.def = Object.assign({}, defst); 
+    fetch(): T {
+        return this[this.#curState];
+    }
+
+    swtichTo(key: Numerizable): T {
+        const state = this.get(key);
+        if (state != undefined) this.#curState = key;
+        return state;
+    }
+
+    toggle(): T {
+        if (typeof this.#curState != "number") {
+            this.#curState = this[this.#curState];
+        }
+        this.#curState = (this.#curState as number + 1) % this.#len;
+        return this.fetch();
+    }
+
+    clone(other: T = this.#target): StateMap<T> {
+        return new StateMap<T>(this, this.#curState).bind(other);
+    }
+
+    bind(target: T): this {
+        if (target == undefined) return this;
+        this.#target = target;
+        
+        for (let index = 1; index < this.#len; index++) {
+            for (const key in this[index]) {
+                this[0][key] = this.#target[key];
+            }
+        }
+        
         return this;
     }
 
-    get length() {
+    get currentState(): Numerizable {
+        return this.#curState;
+    }
+
+    get length(): number {
         return this.#len;
     }
 }

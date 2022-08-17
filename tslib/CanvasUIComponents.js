@@ -33,7 +33,6 @@ class CanvasLabel extends CanvasDisplayComponent {
     constructor(parameters = {}, assign = DATA_IDEN) {
         super({}, DATA_UNINIT);
         this.initialize(parameters, CanvasLabel.DEF_PROP, assign);
-        CanvasLabel.CUM_INDEX++;
     }
     /**
      * @returns {CanvasLabel}
@@ -70,8 +69,6 @@ class CanvasButton extends CanvasInterativeComponent {
         super({}, DATA_UNINIT);
         this.captionLabel = new CanvasLabel({ text: "Button" });
         this.initialize(parameters, CanvasButton.DEF_PROP, assign);
-        this.refresh();
-        CanvasButton.CUM_INDEX++;
     }
     clone() {
         return new CanvasButton(this, DATA_CLONE);
@@ -107,7 +104,10 @@ class CanvasButton extends CanvasInterativeComponent {
         super.onMouseDown(event);
     }
     onMouseUp(event) {
-        this.restore();
+        if (this.isMouseIn)
+            this.switchTo(InteractionStates.STATE_HOVERED);
+        else
+            this.restore();
         super.onMouseUp(event);
     }
     refresh() {
@@ -115,25 +115,28 @@ class CanvasButton extends CanvasInterativeComponent {
         return this;
     }
     render(ctx) {
-        super.render(ctx, [this.captionLabel]);
+        super.render(ctx, this.captionLabel);
     }
 }
 //Statics
 CanvasButton.DEF_PROP = SObject.insertValues({
     fillColor: new Color("#1d89ff"),
     foreColor: new Color("white"),
-    borderColor: new Color("transparent"),
+    borderColor: new Color("#1d89ff"),
     borderWidth: 3,
-    states: new InteractionStates({}, {
+    states: new InteractionStates({
+        def: {
+            foreColor: new Color("white"),
+        },
         hovered: {
             fillColor: new Color("white"),
             foreColor: new Color("#1d89ff"),
-            borderColor: new Color("white")
+            borderColor: new Color("#1d89ff")
         },
         pressed: {
-            fillColor: new Color("white"),
+            fillColor: new Color("#DDDDDD"),
             foreColor: new Color("#1d89ff"),
-            borderColor: new Color("white")
+            borderColor: new Color("#1d89ff")
         }
     })
 }, CanvasInterativeComponent.DEF_PROP, DATA_CLONE);

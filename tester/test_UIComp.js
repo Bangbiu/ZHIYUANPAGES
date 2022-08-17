@@ -27,9 +27,10 @@ export function run_CanvasLabel() {
     let obj1 = new CanvasLabel({
         text: "nope",
         pos: [100,100], 
-        fillColor: "black", 
+        fontColor: "blue", 
         borderColor: "red", 
-        scale: [3,3]
+        scale: [5,5],
+        debug: true
     });
     
     let obj2 = obj1.clone();
@@ -61,21 +62,17 @@ export function run_CanvasLabel() {
  export function run_CanvasButton() {
     let obj1 = new CanvasButton({
         pos: [100,100], 
-        fillColor: "black", 
-        borderColor: "red", 
-        borderWidth: 1,
     });
 
     obj1.bindMouseEvents(canv);
-    obj1.addState("press", {fillColor: new Color("blue")});
-    obj1.addMouseEventListener("mousedown", function(){this.switchTo("press")});
-    obj1.addMouseEventListener("mouseup", function(){this.restore()});
+    //obj1.addMouseEventListener("mouseleave", function(){this.log("states.def")});
     
     obj1.draggable = true;
     
     let obj2 = obj1.clone();
 
-    //obj2.moveTo(200,200);
+    obj2.moveTo(200,200);
+    
     obj2.updateValues({
         pos: "200,200",
         transf: "300,300|45|1,1",
@@ -85,10 +82,10 @@ export function run_CanvasLabel() {
         borderWidth: 5,
         scale: "1.5,1.5",
     });
+    
 
     obj2.bindMouseEvents(canv);
 
-    obj2.add(obj1);
 
     obj1.dispatchTickEvent(
         function(ev) { this.rot.rad+=0.1; },
@@ -96,11 +93,13 @@ export function run_CanvasLabel() {
     );
     obj1.log();
     obj2.log();
-
+    
     renderList.push(obj1);
+
     renderList.push(obj2);
 
     render();
+    
 }
 
 

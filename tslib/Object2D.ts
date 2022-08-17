@@ -20,7 +20,8 @@ import {
     TickEvent,
     Transfizable, 
     Vectorizable, 
-    Numerizable
+    Numerizable,
+    Polymorphistic
 } from "./TypeUtil.js";
 
 export {
@@ -45,7 +46,7 @@ class ContextTransf extends SObject implements ContextTransfProperties {
         if (parameters instanceof Object2D) {
             this.assign("trans", parameters.pos, assign);
             this.assign("rot", parameters.rot, assign);
-            this.assign("scale", parameters.scale, assign);
+            this.assign("scale", parameters.stret, assign);
         } else if (parameters instanceof ContextTransf) {
             this.copy(parameters);
         } else {
@@ -117,8 +118,8 @@ class ContextTransf extends SObject implements ContextTransfProperties {
 
 class TickEventList extends EventList<Object2DProperties, TickEvent> {
 
-    clone(): TickEventList {
-        return new TickEventList(this.actor).copy(this);
+    clone(other: Object2DProperties = this.actor): TickEventList {
+        return new TickEventList(other).copy(this);
     }
 
     trigger(delta: number): void {
@@ -227,7 +228,7 @@ class MouseEventMap extends SObject {
     }
 }
 
-class Object2D extends SObject implements Renderable, Object2DProperties {
+class Object2D extends SObject implements Renderable, Object2DProperties, Polymorphistic {
     ID: number;
 
     frame: Rect2D;
@@ -247,12 +248,13 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
     visible: boolean = true;
 
     tickEvents: TickEventList;
-    states: StateMap<Object2DProperties>;
+    states: StateMap<Object2DProperties> | undefined;
+
+    debug: boolean = false;
 
     constructor( parameters: Object2DProperties = {} , assign = DATA_IDEN) {
         super();
         this.initialize(parameters, Object2D.DEF_PROP, assign);
-        Object2D.CUM_INDEX++;
     }
 
     initialize( parameters: Object2DProperties = {}, 
@@ -262,9 +264,9 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
         //Prevent init
         if (assign == DATA_UNINIT) return this;
         super.initialize(parameters, def, assign);
-        this.tickEvents.bind(this);
-        this.states.bind(this);
+
         this.ID = this.constructor["CUM_INDEX"];
+        this.constructor["CUM_INDEX"]++;
         return this;
     }
 
@@ -272,13 +274,16 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
         super.updateValues(values, assign);
         //Linking
         if (values.transf != undefined) {
-            SObject.resolve(this, "transf", ContextTransf);
+            this.resolve("transf", ContextTransf);
             this.pos = this.transf.trans;
             this.rot = this.transf.rot;
             this.stret = this.transf.scale;
         } else {
             this.transf = new ContextTransf(this, DATA_IDEN);
         }
+        this.tickEvents?.bind(this);
+        if (this.states?.currentState == 0) this.states.bind(this);
+        this.refresh();
         return this;
     }
 
@@ -287,14 +292,16 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
         SObject.resolve(other,"rot", Rotation2D);
         SObject.resolve(other, "stret", Vector2D);
 
-        SObject.resolve(other,"frame", Rect2D);
-        SObject.resolve(other,"scale", Vector2D);
+        SObject.resolve(other, "frame", Rect2D);
+        SObject.resolve(other, "scale", Vector2D);
 
-        SObject.resolve(other,"graphics", Graphics2D);
+        SObject.resolve(other, "graphics", Graphics2D);
 
-        SObject.resolve(other,"fillColor", Color);
-        SObject.resolve(other,"borderColor", Color);
-        SObject.resolve(other,"emissiveColor", Color);
+        SObject.resolve(other, "fillColor", Color);
+        SObject.resolve(other, "borderColor", Color);
+        SObject.resolve(other, "emissiveColor", Color);
+
+        SObject.resolve(other, "states", StateMap);
 
         return this;
     }
@@ -365,7 +372,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
         return this;
     }
 
-    copy(other: Object2D): this {
+    copy(other: Object2DProperties): this {
         const ID = this.ID;
         super.copy(other);
         this.ID = ID;
@@ -376,19 +383,34 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
         return new Object2D(this, DATA_CLONE);
     }
 
-    addState(stateOrKey: Object2DProperties | Numerizable, state: Object2DProperties) {
+    addState(stateOrKey: Object2DProperties | Numerizable, state?: Object2DProperties): void {
+        if (this.states == undefined) this.states = new StateMap().bind(this);
         if (typeof stateOrKey == "object") 
             this.states.push(stateOrKey);
         else 
             this.states.put(stateOrKey, state);
     }
 
+    refresh(): this {
+        if (this.states != undefined) 
+            this.updateValues(this.states.fetch(), DATA_IDEN);
+        return this;
+    }
+
     switchTo(key: Numerizable) {
-        this.updateValues(this.states[key], DATA_IDEN);
+        if (key != undefined && this.states != undefined && key in this.states) 
+            this.updateValues(this.states.swtichTo(key), DATA_IDEN);
+    }
+
+    toggle(): this {
+        if (this.states != undefined) {
+            this.updateValues(this.states.toggle(), DATA_IDEN);
+        }
+        return this;
     }
 
     restore() {
-        this.updateValues(this.states.def, DATA_IDEN);
+        this.updateValues(this.states[0], DATA_IDEN);
     }
 
     isInside(x: number, y: number, ctx: CanvasRenderingContext2D): boolean {
@@ -416,7 +438,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
     }
     
     update(delta: number = 1) {
-        this.tickEvents.trigger(delta);
+        this.tickEvents?.trigger(delta);
     } 
 
     render(ctx: CanvasRenderingContext2D = Object2D.DefaultContext) {
@@ -433,17 +455,25 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
         ctx.fillStyle = this.fillColor.value;
         ctx.strokeStyle = this.borderColor.value;
         ctx.lineWidth = this.borderWidth;
+        
         this.graphics.render(ctx,
             this.borderWidth!=0 && this.borderColor!=undefined, 
             this.fillColor!=undefined, 
             this.scale
         );
+
+        if (this.debug) {
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 2;
+            this.graphics.renderBound(ctx, true, false, this.scale);
+        }
         
         ctx.restore();
     }
 
     dispatchTickEvent(callback: TickCallBack, settings: TickEventProperties = {}): TickEvent {
         const event = Object.assign(callback, Object2D.DEF_TICKEVENT);
+        if (this.tickEvents == undefined) this.tickEvents = new TickEventList(this);
         this.tickEvents.push(Object.assign(event, settings));
         return event;
     }
@@ -502,8 +532,10 @@ class Object2D extends SObject implements Renderable, Object2DProperties {
         borderWidth: 0,
         visible: true,
 
-        tickEvents: new TickEventList(undefined),
-        states: new StateMap<Object2DProperties>({})
+        tickEvents: undefined,
+        states: undefined,
+
+        debug: false
     };
 
     static DEF_TICKEVENT: TickEventProperties = {
@@ -527,7 +559,6 @@ class StageObject extends Object2D implements StageObjectProperties {
     constructor( parameters: StageObjectProperties = {} , assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);
         this.initialize(parameters, StageObject.DEF_PROP, assign);
-        StageObject.CUM_INDEX++;
     }
 
     set pivot(value: Vectorizable) {
@@ -581,7 +612,7 @@ class StageObject extends Object2D implements StageObjectProperties {
         });
     }
 
-    render(ctx: CanvasRenderingContext2D = Object2D.DefaultContext, coInRender: Renderable[]=[]) {
+    render(ctx: CanvasRenderingContext2D = Object2D.DefaultContext, ...coRender: Renderable[]) {
         if (this.mainBody) super.render(ctx);
 
         //Render Components
@@ -590,7 +621,7 @@ class StageObject extends Object2D implements StageObjectProperties {
         this.components.forEach(comp => {
             comp.render(ctx);
         });
-        coInRender.forEach(renderee => {
+        coRender.forEach(renderee => {
             renderee.render(ctx);
         });
         ctx.restore();
@@ -616,7 +647,7 @@ class StageObject extends Object2D implements StageObjectProperties {
     static DEF_PROP: StageObjectProperties = SObject.insertValues({
         mainBody: true,
         innerTransf: new ContextTransf(),
-        states: new StateMap<StageObjectProperties>({})
+        states: undefined
     }, Object2D.DEF_PROP, DATA_CLONE);
 
     static CUM_INDEX: number = 0;
@@ -631,7 +662,6 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
     constructor( parameters: StageInteractiveProperties = {}, assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);
         this.initialize(parameters, StageInteractive.DEF_PROP, assign);
-        StageInteractive.CUM_INDEX++;
     }
 
     get draggable(): boolean {
@@ -749,9 +779,10 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
 
     static CUM_INDEX: number = 0;
     static ObjectList: StageInteractive[] = [];
+    static CanvasDOM: HTMLCanvasElement = undefined;
     static DEF_PROP: StageInteractiveProperties = SObject.insertValues({
         mouseDispatches: new MouseEventMap(undefined),
-        states: new StateMap<StageInteractiveProperties>({})
+        states: undefined
     }, StageObject.DEF_PROP, DATA_CLONE);
 }
 
