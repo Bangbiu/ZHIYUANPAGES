@@ -92,6 +92,7 @@ class CanvasLabel extends CanvasDisplayComponent {
     }, CanvasDisplayComponent.DEF_PROP, DATA_CLONE);
 
     static CUM_INDEX: number = 0;
+    static ObjectList: CanvasLabel[];
 }
 
 class CanvasButton extends CanvasInterativeComponent {
@@ -189,8 +190,8 @@ class CanvasButton extends CanvasInterativeComponent {
             }
         })
     }, CanvasInterativeComponent.DEF_PROP, DATA_CLONE);
-    
 
+    static ObjectList: CanvasButton[];
     static CUM_INDEX = 0;
 }
 
@@ -217,4 +218,5 @@ class CanvasContainer extends CanvasInterativeComponent {
     }, CanvasInterativeComponent.DEF_PROP, DATA_CLONE);
 
     static CUM_INDEX = 0;
+    static ObjectList: CanvasContainer[];
 }

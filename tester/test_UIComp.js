@@ -6,6 +6,7 @@ import { Color, Vector2D } from "../tslib/Struct.js";
 import { Animation } from "../tslib/Animation.js";
 import { ContextTransf, Object2D, StageInteractive, StageObject } from "../tslib/Object2D.js";
 import { CanvasButton, CanvasLabel } from "../tslib/CanvasUIComponents.js";
+import { SObject } from "../tslib/DataUtil.js";
 
 /** @type {import("../tslib/TypeUtil.js").Renderable[]} */
 const renderList = [];
@@ -60,11 +61,15 @@ export function run_CanvasLabel() {
 }
 
  export function run_CanvasButton() {
+
+    CanvasButton.ObjectList = /** @type {CanvasButton[]} */ (renderList);
+    StageInteractive.CanvasDOM = canv;
+
     let obj1 = new CanvasButton({
         pos: [100,100], 
     });
 
-    obj1.bindMouseEvents(canv);
+    //obj1.bindMouseEvents(canv);
     //obj1.addMouseEventListener("mouseleave", function(){this.log("states.def")});
     
     obj1.draggable = true;
@@ -81,10 +86,11 @@ export function run_CanvasLabel() {
         borderColor: "black",
         borderWidth: 5,
         scale: "1.5,1.5",
+        draggable: true
     });
     
 
-    obj2.bindMouseEvents(canv);
+    //obj2.bindMouseEvents(canv);
 
 
     obj1.dispatchTickEvent(
@@ -94,9 +100,12 @@ export function run_CanvasLabel() {
     obj1.log();
     obj2.log();
     
-    renderList.push(obj1);
-
-    renderList.push(obj2);
+    //renderList.push(obj1);
+    //renderList.push(obj2);
+    //console.log(renderList);
+    renderList.forEach(element => {
+        element["log"]("name");
+    });
 
     render();
     

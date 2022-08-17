@@ -191,6 +191,10 @@ class Object2D extends SObject {
         //Prevent init
         if (assign == DATA_UNINIT)
             return this;
+        Object2D.ObjectList?.push(this);
+        if (this.class != "Object2D") {
+            this.constructor["ObjectList"]?.push(this);
+        }
         super.initialize(parameters, def, assign);
         this.ID = this.constructor["CUM_INDEX"];
         this.constructor["CUM_INDEX"]++;
@@ -381,8 +385,11 @@ class Object2D extends SObject {
         });
     }
     finalize() {
-        if (Object2D.ObjectList != undefined)
-            Object2D.ObjectList.splice(Object2D.ObjectList.indexOf(this), 1);
+        Object2D.ObjectList?.splice(Object2D.ObjectList.indexOf(this), 1);
+        if (this.class != "Object2D") {
+            const clsObjList = this.constructor["ObjectList"];
+            clsObjList?.splice(clsObjList.indexOf(this), 1);
+        }
     }
     toString() {
         return `<Object2D:${this.name}>`;
@@ -391,6 +398,7 @@ class Object2D extends SObject {
 //Statics
 Object2D.ObjectList = undefined;
 Object2D.DefaultContext = undefined;
+Object2D.CUM_INDEX = 0;
 Object2D.DEF_PROP = {
     frame: undefined,
     pos: new Vector2D(),
@@ -415,7 +423,6 @@ Object2D.DEF_TICKEVENT = {
     interval: 100,
     repeat: -1,
 };
-Object2D.CUM_INDEX = 0;
 class StageObject extends Object2D {
     constructor(parameters = {}, assign = DATA_IDEN) {
         super({}, DATA_UNINIT);
@@ -505,12 +512,15 @@ StageObject.DEF_PROP = SObject.insertValues({
     innerTransf: new ContextTransf(),
     states: undefined
 }, Object2D.DEF_PROP, DATA_CLONE);
+StageObject.ObjectList = undefined;
 StageObject.CUM_INDEX = 0;
 class StageInteractive extends StageObject {
     constructor(parameters = {}, assign = DATA_IDEN) {
         super({}, DATA_UNINIT);
         this.isMouseIn = false;
         this.initialize(parameters, StageInteractive.DEF_PROP, assign);
+        if (StageInteractive.CanvasDOM != undefined)
+            this.bindMouseEvents(StageInteractive.CanvasDOM);
     }
     get draggable() {
         return "draggable" in this.mouseDispatches;

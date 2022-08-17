@@ -263,6 +263,10 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
     {
         //Prevent init
         if (assign == DATA_UNINIT) return this;
+        Object2D.ObjectList?.push(this);
+        if (this.class != "Object2D") {
+            this.constructor["ObjectList"]?.push(this);
+        }
         super.initialize(parameters, def, assign);
 
         this.ID = this.constructor["CUM_INDEX"];
@@ -503,8 +507,11 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
 
 
     finalize(): void {
-        if (Object2D.ObjectList != undefined)
-            Object2D.ObjectList.splice(Object2D.ObjectList.indexOf(this), 1);
+        Object2D.ObjectList?.splice(Object2D.ObjectList.indexOf(this), 1);
+        if (this.class != "Object2D") {
+            const clsObjList: Array<typeof this> = this.constructor["ObjectList"];
+            clsObjList?.splice(clsObjList.indexOf(this), 1);
+        }
     }
 
     toString(): string {
@@ -514,6 +521,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
     //Statics
     static ObjectList: Object2D[] = undefined;
     static DefaultContext: CanvasRenderingContext2D = undefined;
+    static CUM_INDEX: number = 0;
 
     static DEF_PROP: Object2DProperties = {
         frame: undefined,
@@ -544,8 +552,6 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         interval: 100,
         repeat: -1,
     }
-
-    static CUM_INDEX: number = 0;
 
 }
 
@@ -650,6 +656,7 @@ class StageObject extends Object2D implements StageObjectProperties {
         states: undefined
     }, Object2D.DEF_PROP, DATA_CLONE);
 
+    static ObjectList: StageObject[] = undefined;
     static CUM_INDEX: number = 0;
 }
 
@@ -662,6 +669,8 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
     constructor( parameters: StageInteractiveProperties = {}, assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);
         this.initialize(parameters, StageInteractive.DEF_PROP, assign);
+        if (StageInteractive.CanvasDOM != undefined) 
+            this.bindMouseEvents(StageInteractive.CanvasDOM);
     }
 
     get draggable(): boolean {
