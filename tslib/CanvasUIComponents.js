@@ -149,6 +149,11 @@ class CanvasContainer extends CanvasInterativeComponent {
     clone() {
         return new CanvasContainer(this, DATA_CLONE);
     }
+    add(comp) {
+        super.add(comp);
+        this.refresh();
+        return this;
+    }
 }
 CanvasContainer.LEFT = "left";
 CanvasContainer.RIGHT = "right";

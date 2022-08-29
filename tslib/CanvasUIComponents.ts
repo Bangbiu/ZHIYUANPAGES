@@ -197,7 +197,7 @@ class CanvasButton extends CanvasInterativeComponent {
 
 class CanvasContainer extends CanvasInterativeComponent {
 
-     constructor( parameters: CanvasContainerProperties = {}, assign: DataAssignType = DATA_IDEN) {
+    constructor( parameters: CanvasContainerProperties = {}, assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);
         this.initialize(parameters, CanvasContainer.DEF_PROP, assign);
     }
@@ -206,13 +206,19 @@ class CanvasContainer extends CanvasInterativeComponent {
         return new CanvasContainer(this, DATA_CLONE);
     }
 
+    add(comp: Object2D): this {
+        super.add(comp);
+        this.refresh();
+        return this;
+    }
+
     static LEFT = "left";
     static RIGHT = "right";
     static TOP = "top";
     static BOTTOM = "bottom";
     static CENTER = "center";
 
-    static DEF_PROP = SObject.insertValues({
+    static DEF_PROP: CanvasContainerProperties = SObject.insertValues({
         fillColor: new Color("white"),
         graphics: new Graphics2D("rect"),
     }, CanvasInterativeComponent.DEF_PROP, DATA_CLONE);

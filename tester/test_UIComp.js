@@ -94,8 +94,8 @@ export function run_CanvasLabel() {
 
 
     obj1.dispatchTickEvent(
-        function(ev) { this.rot.rad+=0.1; },
-        {interval: 5, repeat: -1}
+        function(ev) { this.rot.deg += 30; },
+        {interval: 50, repeat: -1}
     );
     obj1.log();
     obj2.log();

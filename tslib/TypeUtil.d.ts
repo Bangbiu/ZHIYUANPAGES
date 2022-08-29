@@ -156,10 +156,12 @@ declare interface CanvasContainerSubProperties {
 
 declare type CanvasContainerProperties = CanvasIntCompProperites & CanvasContainerSubProperties;
 
-declare interface StageProperties {
+declare interface StageSubProperties {
     canvas: HTMLCanvasElement
     backColor?: Colorizable
 }
+
+declare type StageProperties = CanvasContainerProperties & StageSubProperties;
 
 /**
 //Components
