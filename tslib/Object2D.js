@@ -275,6 +275,12 @@ class Object2D extends SObject {
         this.pos.moveTo(x, y);
         return this;
     }
+    reframe(x = this.x, y = this.y, width = this.width, height = this.height) {
+        this.pos.moveTo(x, y);
+        this.width = this.width;
+        this.height = this.height;
+        return this;
+    }
     copy(other) {
         const ID = this.ID;
         super.copy(other);
@@ -586,7 +592,7 @@ class StageInteractive extends StageObject {
         this.mouseDispatches.trigger("mouseup", event);
     }
     onMouseWheel(event) {
-        this.mouseDispatches.trigger("wheel", event);
+        this.mouseDispatches.trigger("mousewheel", event);
     }
     updateMouseInfo(ctx = Object2D.DefaultContext, event) {
         if (!(event instanceof ContextMouseEvent))
@@ -724,5 +730,5 @@ StageDynamic.DEF_SCALE = new Vector2D(1, 1);
 StageDynamic.DEF_FILLCOLOR = new Color("white");
 StageDynamic.DEF_BORDEDR_COLOR = new Color("black");
 StageDynamic.DEF_BORDER_WIDTH = 3;
-StageDynamic.DEF_GRAPHICS = new Graphics2D("square");
+//static DEF_GRAPHICS = new Graphics2D("square");
 StageDynamic.DEF_LIFE = -100;

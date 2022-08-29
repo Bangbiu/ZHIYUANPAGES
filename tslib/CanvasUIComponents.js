@@ -1,6 +1,6 @@
 /*jshint esversion: ES2020 */
 import { DATA_CLONE, DATA_IDEN, DATA_UNINIT, SObject, StateMap } from "./DataUtil.js";
-import { Graphics2D, GraphicsText } from "./Graphics2D.js";
+import { GraphicsText } from "./Graphics2D.js";
 import { Object2D, StageInteractive } from "./Object2D.js";
 import { Color } from "./Struct.js";
 export { CanvasDisplayComponent, CanvasInterativeComponent, CanvasLabel, CanvasButton, CanvasContainer };
@@ -161,7 +161,7 @@ CanvasContainer.TOP = "top";
 CanvasContainer.BOTTOM = "bottom";
 CanvasContainer.CENTER = "center";
 CanvasContainer.DEF_PROP = SObject.insertValues({
-    fillColor: new Color("white"),
-    graphics: new Graphics2D("rect"),
+    fillColor: "white",
+    graphics: "rect",
 }, CanvasInterativeComponent.DEF_PROP, DATA_CLONE);
 CanvasContainer.CUM_INDEX = 0;

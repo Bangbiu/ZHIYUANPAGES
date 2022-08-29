@@ -15,7 +15,6 @@ var _Stage_canvas;
 import { DATA_CLONE, DATA_IDEN, DATA_UNINIT, SObject } from "./DataUtil.js";
 import { StageInteractive } from "./Object2D.js";
 import { CanvasContainer } from "./CanvasUIComponents.js";
-import { Color } from "./Struct.js";
 import { Graphics2D } from "./Graphics2D.js";
 import { Vector2D } from "./Struct.js";
 export { Stage, };
@@ -36,6 +35,7 @@ class Stage extends CanvasContainer {
             return;
         __classPrivateFieldSet(this, _Stage_canvas, canv, "f");
         this.bindMouseEvents(canv);
+        this.log();
         this.refresh();
     }
     refresh() {
@@ -56,6 +56,6 @@ class Stage extends CanvasContainer {
 _Stage_canvas = new WeakMap();
 Stage.DEF_PROP = SObject.insertValues({
     canvas: undefined,
-    fillColor: new Color("black"),
+    fillColor: "black",
     graphics: new Graphics2D("rect"),
 }, StageInteractive.DEF_PROP, DATA_CLONE);

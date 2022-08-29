@@ -1,4 +1,5 @@
 import { CanvasButton } from "../tslib/CanvasUIComponents.js";
+import { Graphics2D } from "../tslib/Graphics2D.js";
 import { Stage } from "../tslib/Stage.js";
 
 /** @type {CanvasRenderingContext2D} */
@@ -18,18 +19,23 @@ let stage;
 }
 
 export function run_Stage() {
-    
+
     stage = new Stage({ canvas: canv });
-    console.log(stage);
 
     let btn1 = new CanvasButton({
-        draggable: true,
-        frame: [0.5,0.5,0.2,0.5]
+        frame: [0.5,0.5,0.5,0.5],
+        fontSize: 5,
+        caption: "Nope",
+        graphics: "heart",
+        debug: true
     });
 
     stage.add(btn1);
 
+    console.log(btn1);
+
     render();
+    
 }
 
 function render(timestamp) {

@@ -31,6 +31,7 @@ class Stage extends CanvasContainer {
         if (canv == undefined) return;
         this.#canvas = canv;
         this.bindMouseEvents(canv);
+        this.log();
         this.refresh();
     }
 
@@ -58,7 +59,7 @@ class Stage extends CanvasContainer {
 
     static DEF_PROP: StageProperties = SObject.insertValues({
         canvas: undefined,
-        fillColor: new Color("black"),
+        fillColor: "black",
         graphics: new Graphics2D("rect"),
     }, StageInteractive.DEF_PROP, DATA_CLONE)
 }

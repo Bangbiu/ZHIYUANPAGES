@@ -250,14 +250,28 @@ class Rect2D extends Vector2D {
     get left() {
         return this.x;
     }
+    set left(val) {
+        this.width += this.x - val;
+        this.x = val;
+    }
     get right() {
         return this.x + this.width;
+    }
+    set right(val) {
+        this.width = val - this.x;
     }
     get top() {
         return this.y;
     }
+    set top(val) {
+        this.height += this.y - val;
+        this.y = val;
+    }
     get bottom() {
         return this.y + this.height;
+    }
+    set bottom(val) {
+        this.height = val - this.y;
     }
     get center() {
         return new Vector2D(this.centerH, this.centerV);
@@ -299,14 +313,14 @@ class Rect2D extends Vector2D {
         return this.expandXY(pt.x, pt.y);
     }
     expandXY(x, y) {
-        if (this.left > x)
-            this.x = x;
+        if (x < this.left)
+            this.left = x;
         else if (this.right < x)
-            this.width = x - this.left;
-        if (this.top > y)
-            this.y = y;
+            this.right = x;
+        if (y < this.top)
+            this.top = y;
         else if (this.bottom < y)
-            this.height = y - this.top;
+            this.bottom = y;
         return this;
     }
     set(value) {

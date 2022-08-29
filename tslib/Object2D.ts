@@ -376,6 +376,13 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         return this;
     }
 
+    reframe(x: number = this.x, y: number = this.y, width: number = this.width, height: number = this.height): this {
+        this.pos.moveTo(x, y);
+        this.width = this.width;
+        this.height = this.height;
+        return this;
+    }
+
     copy(other: Object2DProperties): this {
         const ID = this.ID;
         super.copy(other);
@@ -750,7 +757,7 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
     }
 
     onMouseWheel(event: ContextMouseEvent) {
-        this.mouseDispatches.trigger("wheel",event);
+        this.mouseDispatches.trigger("mousewheel",event);
     }
 
     updateMouseInfo(ctx: CanvasRenderingContext2D = Object2D.DefaultContext, event: ContextMouseEvent | MouseEventInfo) {
@@ -885,6 +892,6 @@ class StageDynamic extends StageInteractive {
     static DEF_FILLCOLOR = new Color("white");
     static DEF_BORDEDR_COLOR = new Color("black");
     static DEF_BORDER_WIDTH = 3;
-    static DEF_GRAPHICS = new Graphics2D("square");
+    //static DEF_GRAPHICS = new Graphics2D("square");
     static DEF_LIFE = -100;
 }

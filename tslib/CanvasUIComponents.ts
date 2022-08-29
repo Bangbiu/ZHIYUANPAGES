@@ -219,8 +219,8 @@ class CanvasContainer extends CanvasInterativeComponent {
     static CENTER = "center";
 
     static DEF_PROP: CanvasContainerProperties = SObject.insertValues({
-        fillColor: new Color("white"),
-        graphics: new Graphics2D("rect"),
+        fillColor: "white",
+        graphics: "rect",
     }, CanvasInterativeComponent.DEF_PROP, DATA_CLONE);
 
     static CUM_INDEX = 0;

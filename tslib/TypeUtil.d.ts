@@ -5,7 +5,7 @@ import { Graphics2D } from "./Graphics2D";
 import { Object2D, StageInteractive, ContextTransf, ContextMouseEvent, TickEventList} from "./Object2D";
 
 // Types
-declare type MouseEventType =  "mousedown"|"mouseup"|"mousemove"|"mouseenter"|"mouseleave"|"wheel";
+declare type MouseEventType =  "mousedown"|"mouseup"|"mousemove"|"mouseenter"|"mouseleave"|"mousewheel";
 declare type InteractiveState = "idle"|"hover"|"pressed";
 declare type JSDataType = "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
 declare type CuttingFunctionType = "warp"|"mirror"|"clamp";
