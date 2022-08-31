@@ -1,5 +1,3 @@
-/*jshint esversion: ES2020 */
-import { SObject } from "./DataUtil.js";
 import { Vector2D, Rect2D } from "./Struct.js";
 export { Graphics2D, GraphicsText, POLY, PATH };
 /*
@@ -31,198 +29,140 @@ const POLY = {
     missle: [[0, -90], [40, -55], [30, 50], [40, 105], [-40, 105], [-30, 50], [-40, -55]],
     heart: [[0, -35], [35, -70], [70, -30], [0, 50], [-70, -30], [-35, -70]]
 };
-class Graphics2D extends SObject {
-    constructor(graphi) {
-        super();
-        this.path = undefined;
-        if (graphi == undefined)
+class Graphics2D extends Path2D {
+    constructor(starter) {
+        if (starter == undefined) {
+            super();
             return;
-        if (typeof graphi == "string") {
-            if (PATH[graphi] != undefined) {
-                this.path = Graphics2D.parsePath(PATH[graphi]);
-            }
-            else if (POLY[graphi] != undefined) {
-                this.path = Graphics2D.parsePoly(POLY[graphi]);
-            }
-            else {
-                this.path = Graphics2D.parsePath(graphi);
-            }
         }
-        else if (graphi instanceof Graphics2D) {
-            this.copy(graphi);
+        if (typeof starter == "string") {
+            if (PATH[starter] != undefined)
+                starter = PATH[starter];
+            else if (POLY[starter] != undefined)
+                starter = Graphics2D.polyToPathString(POLY[starter]);
+            super(starter);
         }
-        else {
-            this.path = Graphics2D.parsePoly(graphi);
+        else if (starter instanceof Graphics2D) {
+            super(starter);
+            this.scale = starter.scale.clone();
+            this.path = new Path2D(starter.path);
+            this.innerBound = starter.innerBound.clone();
+            this.bound = starter.bound.clone();
         }
-        this.calculateBound();
+        else { // Polygon
+            starter = Graphics2D.polyToPathString(starter);
+            super(starter);
+        }
+        //CalculateBoundary
+        if (typeof starter == "string")
+            this.innerBound = Graphics2D.calculateBoundary(starter);
+        else if (starter instanceof Graphics2D)
+            this.innerBound = starter.bound.clone();
+        //Initialize
+        this.scale = new Vector2D(1.0, 1.0);
+        this.bound = this.innerBound.clone();
+        this.path = new Path2D(this);
+        this.boundPath = this.innerBound.getRectPath();
     }
-    copy(other) {
-        this.path = SObject.clone(other.path);
-        return this;
+    update(scale) {
+        if (!scale.equals(this.scale)) {
+            this.scale.copy(scale);
+            this.path = Graphics2D.scalePath(this, scale);
+            this.boundPath = this.innerBound.clone().scale(scale).getRectPath();
+        }
     }
     clone() {
         return new Graphics2D(this);
     }
-    calculateBound(ctx = undefined) {
-        let pen = new Vector2D(0.0, 0.0);
-        this.bound = new Rect2D(0, 0, 0, 0);
-        if (this.path == undefined)
-            return;
-        this.path.forEach(cmd => {
-            let params = cmd[1];
-            switch (cmd[0]) {
+    renderBound(ctx, stroke = Graphics2D.DEF_STROKE, fill = Graphics2D.DEF_FILL) {
+        if (fill)
+            ctx.fill(this.boundPath);
+        if (stroke)
+            ctx.stroke(this.boundPath);
+    }
+    render(ctx, stroke = Graphics2D.DEF_STROKE, fill = Graphics2D.DEF_FILL) {
+        if (stroke)
+            ctx.stroke(this.path);
+        if (fill)
+            ctx.fill(this.path);
+    }
+    static scalePath(path, scale) {
+        const matrix = { a: scale.x, d: scale.y };
+        const res = new Path2D();
+        res.addPath(path, matrix);
+        return res;
+    }
+    static polyToPathString(pts) {
+        let res = "M ";
+        res += `${pts[0][0]},${pts[0][1]} `;
+        for (let i = 1; i < pts.length; i++)
+            res += `L ${pts[i][0]},${pts[i][1]} `;
+        return res + "Z";
+    }
+    static calculateBoundary(path) {
+        const pen = new Vector2D(0.0, 0.0);
+        const bound = new Rect2D(0, 0, 0, 0);
+        const cmds = path.split(Graphics2D.CMD_SEPARATOR);
+        cmds.forEach(cmd => {
+            const args = [];
+            const cmdType = cmd.charAt(0);
+            cmd.slice(1).split(Graphics2D.PARAM_SEPARATOR).forEach(arg => args.push(Number(arg)));
+            switch (cmdType) {
                 case "M": {
-                    pen.moveTo(params[0], params[1]);
+                    pen.moveTo(args[0], args[1]);
                     break;
                 }
                 case "L": {
-                    pen.moveTo(params[0], params[1]);
+                    pen.moveTo(args[0], args[1]);
                     break;
                 }
                 case "H": {
-                    pen["x"] = params[0];
+                    pen.x = args[0];
                     break;
                 }
                 case "V": {
-                    pen["y"] = params[0];
+                    pen.y = args[0];
                     break;
                 }
                 case "Q": {
-                    this.bound.expandXY(params[0], params[1]);
-                    this.bound.expandXY(params[2], params[3]);
+                    bound.expandXY(args[0], args[1]);
+                    bound.expandXY(args[2], args[3]);
                 }
                 case "C": {
-                    this.bound.expandXY(params[4], params[5]);
+                    bound.expandXY(args[4], args[5]);
                     break;
                 }
                 case "A": {
                     break;
                 }
             }
-            this.bound.expand(pen);
+            bound.expand(pen);
         });
-        return this.bound;
-    }
-    traceBound(ctx, scale = Graphics2D.DEF_SCALE) {
-        if (this.bound == undefined)
-            this.calculateBound(ctx);
-        let bound = this.bound.clone().scale(scale);
-        ctx.moveTo(bound.left, bound.top);
-        ctx.lineTo(bound.right, bound.top);
-        ctx.lineTo(bound.right, bound.bottom);
-        ctx.lineTo(bound.left, bound.bottom);
-        ctx.lineTo(bound.left, bound.top);
-    }
-    renderBound(ctx, stroke = Graphics2D.DEF_STROKE, fill = Graphics2D.DEF_FILL, scale = Graphics2D.DEF_SCALE) {
-        ctx.beginPath();
-        this.traceBound(ctx, scale);
-        ctx.closePath();
-        if (fill)
-            ctx.fill();
-        if (stroke)
-            ctx.stroke();
-    }
-    tracePath(ctx, scale = Graphics2D.DEF_SCALE) {
-        let pen = new Vector2D(0.0, 0.0);
-        this.path.forEach(cmd => {
-            let params = cmd[1];
-            switch (cmd[0]) {
-                case "M": {
-                    pen.moveTo(params[0], params[1]).scale(scale);
-                    ctx.moveTo(...pen.value);
-                    break;
-                }
-                case "L": {
-                    pen.moveTo(params[0], params[1]).scale(scale);
-                    ctx.lineTo(...pen.value);
-                    break;
-                }
-                case "H": {
-                    pen.x = params[0];
-                    pen.scaleXY(scale.x, 1);
-                    ctx.lineTo(...pen.value);
-                    break;
-                }
-                case "V": {
-                    pen.y = params[0];
-                    pen.scaleXY(1, scale.y);
-                    ctx.lineTo(...pen.value);
-                    break;
-                }
-                case "A": {
-                    let defparam = [pen.x, pen.y, 10, 10, 0, 0, 1, false];
-                    for (let i = 0; i < params.length; i++) {
-                        defparam[i + 2] = params[i];
-                    }
-                    defparam[2] *= scale.x;
-                    defparam[3] *= scale.y;
-                    defparam[4] *= Math.PI * 2;
-                    defparam[5] *= Math.PI * 2;
-                    defparam[6] *= Math.PI * 2;
-                    defparam[7] = (params[7] == 1 ? true : false);
-                    ctx.ellipse(...defparam);
-                    break;
-                }
-                case "Q": {
-                    pen.moveTo(params[2] * scale.x, params[3] * scale.y);
-                    ctx.quadraticCurveTo(params[0] * scale.x, params[1] * scale.y, pen.x, pen.y);
-                    break;
-                }
-                case "C": {
-                    pen.moveTo(params[4] * scale.x, params[5] * scale.y);
-                    ctx.bezierCurveTo(params[0] * scale.x, params[1] * scale.y, params[2] * scale.x, params[3] * scale.y, pen.x, pen.y);
-                    break;
-                }
-            }
-        });
-    }
-    update() {
-    }
-    render(ctx, stroke = Graphics2D.DEF_STROKE, fill = Graphics2D.DEF_FILL, scale = Graphics2D.DEF_SCALE) {
-        ctx.beginPath();
-        this.tracePath(ctx, scale);
-        ctx.closePath();
-        if (stroke)
-            ctx.stroke();
-        if (fill)
-            ctx.fill();
-    }
-    static parsePoly(pts) {
-        let data = [];
-        data.push(["M", pts[0]]);
-        for (let i = 1; i < pts.length; i++) {
-            data.push(["L", pts[i]]);
-        }
-        return data;
-    }
-    static parsePath(script) {
-        let data = [];
-        let pairs = script.split(" ");
-        for (let i = 0; i < pairs.length; i += 2) {
-            /** @type {Array<number>} */
-            let params = [];
-            pairs[i + 1].split(",").forEach(text => {
-                params.push(Number(text));
-            });
-            data.push([pairs[i], params]);
-        }
-        return data;
+        return bound;
     }
 }
+Graphics2D.CMD_SEPARATOR = new RegExp(/(?=M|L|H|V|A|Q|C|Z)/g);
+Graphics2D.PARAM_SEPARATOR = ",";
 Graphics2D.DEF_FILL = true;
 Graphics2D.DEF_STROKE = true;
 Graphics2D.DEF_SCALE = new Vector2D(1, 1);
 class GraphicsText extends Graphics2D {
     constructor(text) {
         super();
+        this.scale = new Vector2D(1.0, 1.0);
         this.text = text;
+    }
+    update(scale) {
+        if (!scale.equals(this.scale)) {
+            this.scale.copy(scale);
+        }
     }
     clone() {
         return new GraphicsText(this.text);
     }
-    render(ctx, stroke = Graphics2D.DEF_STROKE, fill = Graphics2D.DEF_FILL, scale = Graphics2D.DEF_SCALE) {
+    render(ctx, stroke = Graphics2D.DEF_STROKE, fill = Graphics2D.DEF_FILL) {
         ctx.save();
-        ctx.scale(...scale.value);
+        ctx.scale(...this.scale.value);
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         if (stroke)
@@ -231,12 +171,11 @@ class GraphicsText extends Graphics2D {
             ctx.fillText(this.text, 0, 0);
         ctx.restore();
     }
-    tracePath(ctx, scale = Graphics2D.DEF_SCALE) {
-        return undefined;
-    }
-    calculateBound(ctx = undefined) {
-        if (ctx == undefined)
-            return new Rect2D(0, 0, 0, 0);
+    calculateBoundary(ctx = undefined) {
+        if (ctx == undefined) {
+            this.bound = new Rect2D(0, 0, 0, 0);
+            return this.bound;
+        }
         let mat = ctx.measureText(this.text);
         let width = mat.width;
         let height = (mat.actualBoundingBoxAscent + mat.actualBoundingBoxDescent);

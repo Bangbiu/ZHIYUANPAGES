@@ -46,7 +46,7 @@ declare const s = 0;
 //Interface
 
 declare interface Renderable {
-    update(delta: number): void;
+    update(...params: any[]): void;
     render(ctx: CanvasRenderingContext2D): void
 }
 

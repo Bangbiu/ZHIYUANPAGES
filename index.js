@@ -23,12 +23,12 @@ resize();
 //t_OBJ2D.run_StageInteractive(canvas);
 //t_OBJ2D.run_StateSwitching();
 
-//t_COMP.setCanvas(canvas);
+t_COMP.setCanvas(canvas);
 //t_COMP.run_CanvasLabel();
-//t_COMP.run_CanvasButton();
+t_COMP.run_CanvasButton();
 
-t_STG.setCanvas(canvas);
-t_STG.run_Stage();
+//t_STG.setCanvas(canvas);
+//t_STG.run_Stage();
 
 
 function resize() {

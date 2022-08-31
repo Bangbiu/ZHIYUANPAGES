@@ -259,17 +259,10 @@ class Object2D extends SObject {
         this.scale.y = value / this.graphics.bound.height / this.stret.y;
     }
     get bound() {
-        const gr = this.graphics.bound;
-        if (gr == undefined) {
-            return undefined;
-        }
-        else {
-            return new Rect2D(gr.x * this.scale.x * this.stret.x, gr.y * this.scale.y * this.stret.y, this.width, this.height);
-        }
+        return this.graphics.bound;
     }
     get innerBound() {
-        const gr = this.graphics.bound;
-        return new Rect2D(gr.x * this.scale.x, gr.y * this.scale.y, gr.width * this.scale.x, gr.height * this.scale.y);
+        return this.graphics.innerBound;
     }
     moveTo(x = 0, y = 0) {
         this.pos.moveTo(x, y);
@@ -317,13 +310,20 @@ class Object2D extends SObject {
         this.updateValues(this.states[0], DATA_IDEN);
     }
     isInside(x, y, ctx) {
+        let res;
         ctx.save();
         this.transform(ctx);
-        ctx.beginPath();
-        this.graphics.tracePath(ctx, this.scale);
-        ctx.closePath();
+        res = ctx.isPointInPath(this.graphics.path, x, y);
         ctx.restore();
-        return ctx.isPointInPath(x, y);
+        return res;
+    }
+    isInBound(x, y, ctx) {
+        let res;
+        ctx.save();
+        this.transform(ctx);
+        res = ctx.isPointInPath(this.graphics.boundPath, x, y);
+        ctx.restore();
+        return res;
     }
     transform(ctxOrPos) {
         if (ctxOrPos instanceof Vector2D) {
@@ -340,6 +340,7 @@ class Object2D extends SObject {
     }
     update(delta = 1) {
         this.tickEvents?.trigger(delta);
+        this.graphics.update(this.scale);
     }
     render(ctx = Object2D.DefaultContext) {
         if (!this.visible)
@@ -354,11 +355,11 @@ class Object2D extends SObject {
         ctx.fillStyle = this.fillColor.value;
         ctx.strokeStyle = this.borderColor.value;
         ctx.lineWidth = this.borderWidth;
-        this.graphics.render(ctx, this.borderWidth != 0 && this.borderColor != undefined, this.fillColor != undefined, this.scale);
+        this.graphics.render(ctx, this.borderWidth != 0 && this.borderColor != undefined, this.fillColor != undefined);
         if (this.debug) {
             ctx.strokeStyle = "red";
             ctx.lineWidth = 2;
-            this.graphics.renderBound(ctx, true, false, this.scale);
+            this.graphics.renderBound(ctx, true, false);
         }
         ctx.restore();
     }

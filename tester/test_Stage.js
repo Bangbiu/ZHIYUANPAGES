@@ -1,5 +1,5 @@
 import { CanvasButton } from "../tslib/CanvasUIComponents.js";
-import { Graphics2D } from "../tslib/Graphics2D.js";
+import { Graphics2D, PATH, POLY } from "../tslib/Graphics2D.js";
 import { Stage } from "../tslib/Stage.js";
 
 /** @type {CanvasRenderingContext2D} */
@@ -24,17 +24,18 @@ export function run_Stage() {
 
     let btn1 = new CanvasButton({
         draggable: true,
-        frame: [0.5,0.5,0.5,0.5],
-        fontSize: 5,
+        fontSize: 2,
+        scale: [3,3],
+        frame: [0.5, 0.5],
         caption: "Nope",
-        graphics: "heart",
-        debug: true
+        graphics: "roundArea",
+        //debug: true
     });
 
     stage.add(btn1);
 
     console.log(btn1);
-
+    
     render();
     
 }
@@ -43,7 +44,6 @@ function render(timestamp) {
     ctx.clearRect(0,0,2000,2000);
     stage.render(ctx);
 
-    ctx.fillStyle = "blue";
 
     let path = new Path2D();
 
@@ -52,7 +52,15 @@ function render(timestamp) {
     path.lineTo(500,100);
     path.closePath();
 
+    ctx.fillStyle = "blue";
     ctx.fill(path);
+    ctx.fillStyle = "red";
+    let transed = new Path2D(undefined);
+    transed.addPath(path, {a: 0.5, d: 1});
+    
+    ctx.fill(transed);
+
+
 
     window.requestAnimationFrame(render);
 }

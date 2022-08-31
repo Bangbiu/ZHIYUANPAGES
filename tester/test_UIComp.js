@@ -1,7 +1,7 @@
 /*jshint esversion: ES2020 */
 // @ts-check
 
-import { Graphics2D } from "../tslib/Graphics2D.js";
+import { Graphics2D, PATH, POLY } from "../tslib/Graphics2D.js";
 import { Color, Vector2D } from "../tslib/Struct.js";
 import { Animation } from "../tslib/Animation.js";
 import { ContextTransf, Object2D, StageInteractive, StageObject } from "../tslib/Object2D.js";
@@ -86,17 +86,17 @@ export function run_CanvasLabel() {
         borderColor: "black",
         borderWidth: 5,
         scale: "1.5,1.5",
-        draggable: true
+        draggable: true,
+        debug: true
     });
-    
 
-    //obj2.bindMouseEvents(canv);
-
+    obj2.log("captionLabel.pos");
 
     obj1.dispatchTickEvent(
         function(ev) { this.rot.deg += 30; },
         {interval: 50, repeat: -1}
     );
+    
     obj1.log();
     obj2.log();
     
@@ -119,5 +119,6 @@ function render(timestamp) {
         obj.update(1);
         obj.render(ctx);
     });
+
     window.requestAnimationFrame(render);
 }

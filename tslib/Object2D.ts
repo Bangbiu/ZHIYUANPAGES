@@ -348,27 +348,11 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
 
 
     get bound(): Rect2D {
-        const gr = this.graphics.bound;
-        if (gr == undefined) {
-            return undefined;
-        } else {
-            return new Rect2D(
-                gr.x * this.scale.x * this.stret.x,
-                gr.y * this.scale.y * this.stret.y,
-                this.width,
-                this.height,
-            );
-        }
+        return this.graphics.bound;
     }
 
     get innerBound(): Rect2D {
-        const gr = this.graphics.bound;
-        return new Rect2D(
-            gr.x * this.scale.x,
-            gr.y * this.scale.y,
-            gr.width * this.scale.x,
-            gr.height * this.scale.y,
-        );
+        return this.graphics.innerBound;
     }
 
     moveTo(x: number = 0, y: number = 0): this {
@@ -425,13 +409,21 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
     }
 
     isInside(x: number, y: number, ctx: CanvasRenderingContext2D): boolean {
+        let res;
         ctx.save();
         this.transform(ctx);
-        ctx.beginPath();
-        this.graphics.tracePath(ctx,this.scale);
-        ctx.closePath();
+        res = ctx.isPointInPath(this.graphics.path, x, y);
         ctx.restore();
-        return ctx.isPointInPath(x, y);
+        return res;
+    }
+
+    isInBound(x: number, y: number, ctx: CanvasRenderingContext2D): boolean {
+        let res;
+        ctx.save();
+        this.transform(ctx);
+        res = ctx.isPointInPath(this.graphics.boundPath, x, y);
+        ctx.restore();
+        return res;
     }
 
     transform<T>(ctxOrPos: T): T {
@@ -450,6 +442,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
     
     update(delta: number = 1) {
         this.tickEvents?.trigger(delta);
+        this.graphics.update(this.scale);
     } 
 
     render(ctx: CanvasRenderingContext2D = Object2D.DefaultContext) {
@@ -468,15 +461,14 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         ctx.lineWidth = this.borderWidth;
         
         this.graphics.render(ctx,
-            this.borderWidth!=0 && this.borderColor!=undefined, 
-            this.fillColor!=undefined, 
-            this.scale
+            this.borderWidth != 0 && this.borderColor != undefined, 
+            this.fillColor != undefined, 
         );
 
         if (this.debug) {
             ctx.strokeStyle = "red";
             ctx.lineWidth = 2;
-            this.graphics.renderBound(ctx, true, false, this.scale);
+            this.graphics.renderBound(ctx, true, false);
         }
         
         ctx.restore();

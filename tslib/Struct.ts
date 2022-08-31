@@ -263,11 +263,8 @@ class Vector2D extends SObject {
         return `<${this.name}:(${this.x},${this.y})>`;
     }
 
-    equals(other: Array<number> | Vector2D): boolean {
-        if (other instanceof Vector2D) 
-            return this.x == other.x && this.y == other.y;
-        else
-            return this.x == other[0] && this.y == other[1];
+    equals(other: Vector2D): boolean {
+        return this.x == other.x && this.y == other.y;
     }
 
     static interpolate(a: Vector2D, b: Vector2D, u: number = 0.5): Vector2D {
@@ -424,13 +421,18 @@ class Rect2D extends Vector2D {
         return this;
     }
 
-    equals(other: Array<number> | Rect2D ): boolean {
-        const res = super.equals(other);
-        if (other instanceof Array) {
-            return res && other[2] == this.width && other[3] == this.height;
-        } else {
-            return res && other.width == this.width && other.height == this.height;
-        }   
+    getRectPath(): Path2D {
+        const res = new Path2D();
+        res.moveTo(this.left, this.top);
+        res.lineTo(this.right, this.top);
+        res.lineTo(this.right, this.bottom);
+        res.lineTo(this.left, this.bottom);
+        res.closePath();
+        return res;
+    }
+
+    equals(other: Rect2D ): boolean {
+        return super.equals(other) && other.width == this.width && other.height == this.height; 
     }
 
     toString(): string {
