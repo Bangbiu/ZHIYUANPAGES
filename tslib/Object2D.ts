@@ -267,6 +267,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         if (this.class != "Object2D") {
             this.constructor["ObjectList"]?.push(this);
         }
+
         super.initialize(parameters, def, assign);
 
         this.ID = this.constructor["CUM_INDEX"];
@@ -306,7 +307,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         SObject.resolve(other, "emissiveColor", Color);
 
         SObject.resolve(other, "states", StateMap);
-
+    
         return this;
     }
 
@@ -348,11 +349,11 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
 
 
     get bound(): Rect2D {
-        return this.graphics.bound;
+        return this.graphics.bound.clone().scale(this.scale);
     }
 
     get innerBound(): Rect2D {
-        return this.graphics.innerBound;
+        return this.graphics.bound;
     }
 
     moveTo(x: number = 0, y: number = 0): this {
@@ -412,7 +413,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         let res;
         ctx.save();
         this.transform(ctx);
-        res = ctx.isPointInPath(this.graphics.path, x, y);
+        res = ctx.isPointInPath(this.graphics.scaledPath(this.scale), x, y);
         ctx.restore();
         return res;
     }
@@ -442,7 +443,6 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
     
     update(delta: number = 1) {
         this.tickEvents?.trigger(delta);
-        this.graphics.update(this.scale);
     } 
 
     render(ctx: CanvasRenderingContext2D = Object2D.DefaultContext) {
@@ -461,6 +461,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         ctx.lineWidth = this.borderWidth;
         
         this.graphics.render(ctx,
+            this.scale,
             this.borderWidth != 0 && this.borderColor != undefined, 
             this.fillColor != undefined, 
         );
@@ -468,7 +469,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         if (this.debug) {
             ctx.strokeStyle = "red";
             ctx.lineWidth = 2;
-            this.graphics.renderBound(ctx, true, false);
+            this.graphics.renderBound(ctx, this.scale, true, false);
         }
         
         ctx.restore();
@@ -721,7 +722,6 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
     isInsideInteracting(): boolean {
         for(let i = 0; i < this.components.length; i++) {
             const comp = this.components[i];
-            //if (this.class == "CanvasContainer") console.log(comp);
             if (comp instanceof StageInteractive && comp.isMouseIn) 
                 return true;
         }

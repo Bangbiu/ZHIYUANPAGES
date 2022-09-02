@@ -259,10 +259,10 @@ class Object2D extends SObject {
         this.scale.y = value / this.graphics.bound.height / this.stret.y;
     }
     get bound() {
-        return this.graphics.bound;
+        return this.graphics.bound.clone().scale(this.scale);
     }
     get innerBound() {
-        return this.graphics.innerBound;
+        return this.graphics.bound;
     }
     moveTo(x = 0, y = 0) {
         this.pos.moveTo(x, y);
@@ -313,7 +313,7 @@ class Object2D extends SObject {
         let res;
         ctx.save();
         this.transform(ctx);
-        res = ctx.isPointInPath(this.graphics.path, x, y);
+        res = ctx.isPointInPath(this.graphics.scaledPath(this.scale), x, y);
         ctx.restore();
         return res;
     }
@@ -340,7 +340,6 @@ class Object2D extends SObject {
     }
     update(delta = 1) {
         this.tickEvents?.trigger(delta);
-        this.graphics.update(this.scale);
     }
     render(ctx = Object2D.DefaultContext) {
         if (!this.visible)
@@ -355,11 +354,11 @@ class Object2D extends SObject {
         ctx.fillStyle = this.fillColor.value;
         ctx.strokeStyle = this.borderColor.value;
         ctx.lineWidth = this.borderWidth;
-        this.graphics.render(ctx, this.borderWidth != 0 && this.borderColor != undefined, this.fillColor != undefined);
+        this.graphics.render(ctx, this.scale, this.borderWidth != 0 && this.borderColor != undefined, this.fillColor != undefined);
         if (this.debug) {
             ctx.strokeStyle = "red";
             ctx.lineWidth = 2;
-            this.graphics.renderBound(ctx, true, false);
+            this.graphics.renderBound(ctx, this.scale, true, false);
         }
         ctx.restore();
     }
@@ -571,7 +570,6 @@ class StageInteractive extends StageObject {
     isInsideInteracting() {
         for (let i = 0; i < this.components.length; i++) {
             const comp = this.components[i];
-            //if (this.class == "CanvasContainer") console.log(comp);
             if (comp instanceof StageInteractive && comp.isMouseIn)
                 return true;
         }

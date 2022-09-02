@@ -1,7 +1,7 @@
 
 import { SObject , Attribution, StateMap} from "./DataUtil";
 import { Vector2D, Color, Rect2D, Rotation2D,  } from "./Struct";
-import { Graphics2D } from "./Graphics2D";
+import { Graphics2D, PATHCMD } from "./Graphics2D";
 import { Object2D, StageInteractive, ContextTransf, ContextMouseEvent, TickEventList} from "./Object2D";
 
 // Types
@@ -32,17 +32,15 @@ declare type Graphizable = string | Graphics2D | Polygon;
 declare type Numerizable = number | string;
 declare type Transfizable = string | ContextTransfProperties | ContextTransf | Object2D;
 
-declare type ParsedPath = [string,number[]][];
-declare type Polygon = [number, number][];
-declare type EclipseParam = [number, number, number, number, number, number, number, boolean];
-
 declare type TickCallBack = (this: Object2D, ev: TickEvent) => any;
 declare type TickEvent = TickCallBack & TickEventProperties;
 
 declare type MouseEventInfo = MouseEvent | WheelEvent;
 declare type MouseDispatchedEvent = (this: StageInteractive, event: ContextMouseEvent) => any;
 
-declare const s = 0;
+declare type Polygon = [number, number][];
+declare type ParsedPath = PathCommand[];
+
 //Interface
 
 declare interface Renderable {
@@ -81,6 +79,11 @@ declare interface MouseEventBehavior {
 declare interface Polymorphistic {
     states: StateMap<Object> | undefined
     addState(stateOrKey: Object | Numerizable, state?: Object): void;
+}
+
+declare interface PathCommand {
+    type: PATHCMD;
+    args: number[];
 }
 
 declare interface Object2DProperties {

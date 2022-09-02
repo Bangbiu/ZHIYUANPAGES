@@ -277,7 +277,7 @@ class Rect2D extends Vector2D {
     height: number;
     width: number;
 
-    constructor(x: Rectizable = 0, y: number = 0,width: number = 1, height: number = 1) {
+    constructor(x: Rectizable = 0, y: number = 0,width: number = 0, height: number = 0) {
         super();
 
         if (x instanceof Rect2D) {

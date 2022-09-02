@@ -160,7 +160,7 @@ class CanvasButton extends CanvasInterativeComponent {
     }
 
     refresh(): this {
-        this.captionLabel.pos.copy(this.innerBound.center);
+        this.captionLabel.pos.copy(this.bound.center);
         return this;
     }
 

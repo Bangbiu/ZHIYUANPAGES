@@ -111,7 +111,7 @@ class CanvasButton extends CanvasInterativeComponent {
         super.onMouseUp(event);
     }
     refresh() {
-        this.captionLabel.pos.copy(this.innerBound.center);
+        this.captionLabel.pos.copy(this.bound.center);
         return this;
     }
     render(ctx) {

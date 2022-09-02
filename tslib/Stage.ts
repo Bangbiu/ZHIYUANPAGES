@@ -19,7 +19,7 @@ class Stage extends CanvasContainer {
         super({}, DATA_UNINIT);
         this.initialize(parameters, Stage.DEF_PROP, assign);
         //this.updateValues(parameters,assign);
-        window.addEventListener("resize",this.refresh.bind(this));
+        window.addEventListener("resize", this.refresh.bind(this));
         this.canvas = parameters.canvas;
     }
     
@@ -31,8 +31,6 @@ class Stage extends CanvasContainer {
         if (canv == undefined) return;
         this.#canvas = canv;
         this.bindMouseEvents(canv);
-        this.log();
-        this.refresh();
     }
 
     refresh(): this {
@@ -48,10 +46,10 @@ class Stage extends CanvasContainer {
 
         super.refresh();
 
-        window["StageWidth"] = this.width;
-        window["StageHeight"] = this.height;
+        window["StageWidth"] = canv.width;
+        window["StageHeight"] = canv.width;
         
-        console.clear();
+        //console.clear();
         console.log(new Vector2D(this.width,this.height));
         
         return this;
@@ -60,7 +58,7 @@ class Stage extends CanvasContainer {
     static DEF_PROP: StageProperties = SObject.insertValues({
         canvas: undefined,
         fillColor: "black",
-        graphics: new Graphics2D("rect"),
+        graphics: "rect",
     }, StageInteractive.DEF_PROP, DATA_CLONE)
 }
 

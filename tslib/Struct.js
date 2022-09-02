@@ -219,7 +219,7 @@ class Vector2D extends SObject {
     }
 }
 class Rect2D extends Vector2D {
-    constructor(x = 0, y = 0, width = 1, height = 1) {
+    constructor(x = 0, y = 0, width = 0, height = 0) {
         super();
         if (x instanceof Rect2D) {
             this.copy(x);
