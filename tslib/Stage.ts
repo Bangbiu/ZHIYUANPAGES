@@ -49,7 +49,7 @@ class Stage extends CanvasContainer {
         window["StageWidth"] = canv.width;
         window["StageHeight"] = canv.width;
         
-        //console.clear();
+        console.clear();
         console.log(new Vector2D(this.width,this.height));
         
         return this;

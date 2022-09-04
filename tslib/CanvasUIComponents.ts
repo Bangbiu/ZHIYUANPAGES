@@ -48,7 +48,7 @@ class CanvasInterativeComponent extends StageInteractive {
 }
 
 class CanvasLabel extends CanvasDisplayComponent {
-    graphics: GraphicsText;
+    declare graphics: GraphicsText;
 
     constructor( parameters: CanvasLabelProperties = {}, assign: DataAssignType = DATA_IDEN) {
          super({}, DATA_UNINIT);
@@ -97,10 +97,7 @@ class CanvasLabel extends CanvasDisplayComponent {
 
 class CanvasButton extends CanvasInterativeComponent {
     captionLabel: CanvasLabel;
-    fillColor: Color;
-    borderColor: Color;
-    emissiveColor: Color;
-    states: InteractionStates<CanvasButtonProperties>
+    declare states: InteractionStates<CanvasButtonProperties>
 
     constructor( parameters: CanvasButtonProperties = {} , assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);

@@ -560,7 +560,7 @@ class StageObject extends Object2D implements StageObjectProperties {
     components: Object2D[] = [];
     innerTransf: ContextTransf;
     mainBody: boolean = true;
-    states: StateMap<StageObjectProperties>;
+    declare states: StateMap<StageObjectProperties>;
 
     constructor( parameters: StageObjectProperties = {} , assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);
@@ -664,7 +664,7 @@ class StageObject extends Object2D implements StageObjectProperties {
 class StageInteractive extends StageObject implements StageInteractiveProperties {
     isMouseIn: boolean = false;
     mouseDispatches: MouseEventMap;
-    states: StateMap<StageInteractiveProperties>;
+    declare states: StateMap<StageInteractiveProperties>;
     
     constructor( parameters: StageInteractiveProperties = {}, assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);
