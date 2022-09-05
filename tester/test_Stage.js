@@ -27,21 +27,21 @@ export function run_Stage() {
         scale: [3,3],
         frame: [0.5, 0.5],
         caption: "Button",
-        graphics: "disc",
-        debug: true
+        graphics: "star",
+        debug: true,
+        draggable: true
     });
 
-    /*
+    
     let angle = 0.1;
     stage.addMouseEventListener("mousewheel", function(e) {
         const x = 50 * Math.cos(angle);
         const y = 50 * Math.sin(angle);
-        angle+=Math.sign(e.info.wheelDelta) * 0.1;
+        angle-=Math.sign(e.info.wheelDelta) * 0.1;
         const large = Number(angle % (Math.PI * 2) > Math.PI);
-        btn1.graphics = new Graphics2D(`M 50,0 +A 50,20,0,${large},1,${x},${y} L 0,0`);
+        btn1.graphics = new Graphics2D(`M 50,0 A 50,50,0,${large},1,${x},${y} L 0,0`);
         btn1.refresh();
     });
-    */
     
 
     stage.add(btn1);

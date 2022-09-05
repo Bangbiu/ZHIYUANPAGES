@@ -1,5 +1,6 @@
 /*jshint esversion: ES2020 */
-import { clamp, SObject } from "./DataUtil.js";
+import { SObject } from "./DataUtil.js";
+import { clamp } from "./SMath.js";
 export const PI = Math.PI;
 export const DPI = PI * 2;
 export const ROUND_OFF = 0.0001;

@@ -1,14 +1,15 @@
 /*jshint esversion: ES2020 */
-import { SObject } from "./DataUtil.js";
+import * as SMath from "./SMath.js";
 import { Vector2D, Rect2D, Rotation2D } from "./Struct.js";
 import { Graphizable, ParsedPath, PathCommand, Polygon, Renderable } from "./TypeUtil";
+import PATH from './PathRes.json' assert {type: 'json'}
 
 export {
     PATHCMD,
+    POLY,
+    PATH,
     Graphics2D,
     GraphicsText,
-    POLY,
-    PATH
 }
 
 /** 
@@ -51,13 +52,6 @@ const POLY: PolygonPreset = {
     heart: [[0,-35],[35,-70],[70,-30],[0,50],[-70,-30],[-35,-70]]
 }
 
-const PATH = {
-    oval: "M 0,50 A 50,50,0,1,0,0,-50 Z",
-    disc : "M 0,-50 A 50,50,0,1,0,0,50 A 50,50,0,1,0,0,-50 Z",
-    roundArea: "M 10,0 H 90 Q 100,0,100,10 V 90 Q 100,100,90,100 H 10 Q 0,100,0,90 V 10 Q 0,0,10,0",
-    roundSquare: "",
-}
-
 interface PolygonPreset {
     readonly [propName: string]: Polygon;
 }
@@ -65,50 +59,6 @@ interface PolygonPreset {
 interface PathPreset {
     readonly [propName: string]: string;
 }
-
-function correctRadii(signedRx, signedRy, x1p, y1p) {
-    const prx = Math.abs(signedRx);
-    const pry = Math.abs(signedRy);
-  
-    const A = x1p**2 / prx**2 + y1p**2 / pry**2;
-  
-    const rx = A > 1 ? Math.sqrt(A) * prx : prx;
-    const ry = A > 1 ? Math.sqrt(A) * pry : pry;
-  
-    return [rx, ry];
-}
-
-function pow(n) {
-    return Math.pow(n, 2);
-}
-
-function mat2DotVec2([m00, m01, m10, m11], [vx, vy]) {
-    return [m00 * vx + m01 * vy, m10 * vx + m11 * vy];
-}
-
-function vec2Scale([a0, a1], scalar) {
-    return [a0 * scalar, a1 * scalar];
-}
-
-function vec2Dot([ux, uy], [vx, vy]) {
-    return ux * vx + uy * vy;
-}
-
-function vec2Mag([ux, uy]) {
-    return Math.sqrt(ux ** 2 + uy ** 2);
-}
-
-function vec2Add([ux, uy], [vx, vy]) {
-    return [ux + vx, uy + vy];
-}
-
-function vec2Angle(u, v) {
-    const [ux, uy] = u;
-    const [vx, vy] = v;
-    const sign = ux * vy - uy * vx >= 0 ? 1 : -1;
-    return sign * Math.acos(vec2Dot(u, v) / (vec2Mag(u) * vec2Mag(v)));
-}
-
 
 class Graphics2D extends Path2D implements Renderable {
     bound: Rect2D;
@@ -194,8 +144,8 @@ class Graphics2D extends Path2D implements Renderable {
         return res + "Z";
     }
 
-    static parsePath(path: string): PathCommand[] {
-        const cmds: PathCommand[] = [];
+    static parsePath(path: string): ParsedPath {
+        const cmds: ParsedPath = [];
 
         path.split(Graphics2D.CMD_SEPARATOR).forEach(cmd => {
             const args: number[] = [];
@@ -275,32 +225,32 @@ class Graphics2D extends Path2D implements Renderable {
         const cosphi = Math.cos(xAxisRotation);
         const sinphi = Math.sin(xAxisRotation);
 
-        const [x1p, y1p] = mat2DotVec2(
+        const [x1p, y1p] = SMath.mat2DotVec2(
             [cosphi, sinphi, -sinphi, cosphi],
             [(x1 - x2) / 2, (y1 - y2) / 2]
         );
 
-        const [rx, ry] = correctRadii(srx, sry, x1p, y1p);
+        const [rx, ry] = SMath.correctRadii(srx, sry, x1p, y1p);
 
         const sign = largeArcFlag !== sweepFlag ? 1 : -1;
-        const n = pow(rx) * pow(ry) - pow(rx) * pow(y1p) - pow(ry) * pow(x1p);
-        const d = pow(rx) * pow(y1p) + pow(ry) * pow(x1p);
+        const n = rx**2 * ry**2 - rx**2 * y1p**2 - ry**2 * x1p**2;
+        const d = rx**2 * y1p**2 + ry**2 * x1p**2;
         
 
-        const [cxp, cyp] = vec2Scale(
+        const [cxp, cyp] = SMath.vec2Scale(
             [(rx * y1p) / ry, (-ry * x1p) / rx],
             sign * Math.sqrt(Math.abs(n / d))
         );
 
-        const [cx, cy] = vec2Add(
-            mat2DotVec2([cosphi, -sinphi, sinphi, cosphi], [cxp, cyp]) as [any, any],
+        const [cx, cy] = SMath.vec2Add(
+            SMath.mat2DotVec2([cosphi, -sinphi, sinphi, cosphi], [cxp, cyp]) as [any, any],
             [(x1 + x2) / 2, (y1 + y2) / 2]
         );
 
         const a = [(x1p - cxp) / rx, (y1p - cyp) / ry];
         const b = [(-x1p - cxp) / rx, (-y1p - cyp) / ry];
-        const startAngle = vec2Angle([1, 0], a);
-        const deltaAngle0 = vec2Angle(a, b) % (2 * Math.PI);
+        const startAngle = SMath.vec2Angle([1, 0], a);
+        const deltaAngle0 = SMath.vec2Angle(a, b) % (2 * Math.PI);
 
         const deltaAngle =
             !sweepFlag && deltaAngle0 > 0

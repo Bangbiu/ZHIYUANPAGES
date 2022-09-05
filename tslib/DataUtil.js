@@ -18,7 +18,7 @@ const ATTR_SPLITER = '.';
 const doNothing = function (...argArray) { return undefined; };
 let ASN_DEF = DATA_CLONE;
 let JSD_DEF = ["number", "boolean"];
-export { doNothing, clamp, mirror, warp, step, SObject, Attribution, EventList, StateMap, ASN_DEF, JSD_DEF, DATA_IDEN, DATA_CLONE, DATA_UNINIT };
+export { doNothing, SObject, Attribution, EventList, StateMap, ASN_DEF, JSD_DEF, DATA_IDEN, DATA_CLONE, DATA_UNINIT };
 Function.prototype["clone"] = function () {
     var cloneObj = this;
     if (this.__isClone) {
@@ -32,29 +32,6 @@ Function.prototype["clone"] = function () {
     temp["__clonedFrom"] = cloneObj;
     return temp;
 };
-function clamp(value, max, min = 0.0) {
-    if (value < min)
-        return min;
-    if (value > max)
-        return max;
-    return value;
-}
-function mirror(value, mid) {
-    value = value % (mid * 2);
-    if (value <= mid)
-        return value;
-    else
-        return 2 * mid - value;
-}
-function warp(value, wall) {
-    return value % wall;
-}
-function step(value, des) {
-    if (value >= des)
-        return 1.0;
-    else
-        return 0.0;
-}
 class SObject {
     constructor(properties, assign = ASN_DEF) {
         if (properties)

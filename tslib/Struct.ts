@@ -1,6 +1,7 @@
 /*jshint esversion: ES2020 */
 
-import { clamp,  SObject } from "./DataUtil.js";
+import { SObject } from "./DataUtil.js";
+import { clamp } from "./SMath.js";
 import { 
     Rectizable, 
     Rotationizable, 

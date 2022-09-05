@@ -22,10 +22,6 @@ let JSD_DEF: JSDataType[] = ["number","boolean"];
 
 export {
     doNothing,
-    clamp,
-    mirror,
-    warp,
-    step,
 
     SObject,
     Attribution,
@@ -56,27 +52,6 @@ Function.prototype["clone"] = function() {
     return temp;
 };
 
-
-function clamp(value: number, max: number, min: number = 0.0): number {
-    if (value < min) return min;
-    if (value > max) return max;
-    return value;
-}
-
-function mirror(value: number, mid: number): number {
-    value = value % (mid * 2);
-    if (value <= mid) return value;
-    else return 2 * mid - value;
-}
-
-function warp(value: number, wall: number): number {
-    return value % wall;
-}
-
-function step(value: number,des: number): number {
-    if (value >= des) return 1.0;
-    else return 0.0;
-}
 
 class SObject {
 
