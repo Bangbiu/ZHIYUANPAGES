@@ -546,6 +546,10 @@ class StageInteractive extends StageObject {
             this.mouseDispatches.removeBehavior("draggable");
         }
     }
+    bindKeyboardEvents(canv) {
+        canv.addEventListener("keydown", function (ev) { ev.key; });
+        return this;
+    }
     bindMouseEvents(canv) {
         let ctx = /** @type {CanvasRenderingContext2D} */ canv.getContext("2d");
         //this.onMouseDown.bind(this) onMouseUp onMouseMove
@@ -574,6 +578,12 @@ class StageInteractive extends StageObject {
                 return true;
         }
         return false;
+    }
+    onKeyDown(event) {
+    }
+    onKeyPress(event) {
+    }
+    onKeyUp(event) {
     }
     onMouseEnter(event) {
         this.mouseDispatches.trigger("mouseenter", event);

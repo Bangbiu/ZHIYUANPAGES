@@ -1,14 +1,14 @@
 /*jshint esversion: ES2020 */
 // @ts-check
 
-import { Graphics2D, PATH, POLY } from "../tslib/Graphics2D.js";
-import { Color, Vector2D } from "../tslib/Struct.js";
-import { Animation } from "../tslib/Animation.js";
-import { ContextTransf, Object2D, StageInteractive, StageObject } from "../tslib/Object2D.js";
-import { CanvasButton, CanvasLabel } from "../tslib/CanvasUIComponents.js";
-import { SObject } from "../tslib/DataUtil.js";
+import { Graphics2D, PATH, POLY } from "../StageModule/Graphics2D.js";
+import { Color, Vector2D } from "../StageModule/Struct.js";
+import { Animation } from "../StageModule/Animation.js";
+import { ContextTransf, Object2D, StageInteractive, StageObject } from "../StageModule/Object2D.js";
+import { CanvasButton, CanvasLabel } from "../StageModule/CanvasUIComponents.js";
+import { SObject } from "../StageModule/DataUtil.js";
 
-/** @type {import("../tslib/TypeUtil.js").Renderable[]} */
+/** @type {import("../StageModule/TypeUtil.js").Renderable[]} */
 const renderList = [];
 /** @type {CanvasRenderingContext2D} */
 let ctx;

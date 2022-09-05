@@ -1,7 +1,7 @@
-import { CanvasButton } from "../tslib/CanvasUIComponents.js";
-import { DATA_CLONE } from "../tslib/DataUtil.js";
-import { Graphics2D, PATH, PATHCMD, POLY } from "../tslib/Graphics2D.js";
-import { Stage } from "../tslib/Stage.js";
+import { CanvasButton } from "../StageModule/CanvasUIComponents.js";
+import { DATA_CLONE } from "../StageModule/DataUtil.js";
+import { Graphics2D, PATH, PATHCMD, POLY } from "../StageModule/Graphics2D.js";
+import { Stage } from "../StageModule/Stage.js";
 
 /** @type {CanvasRenderingContext2D} */
 let ctx;
@@ -27,7 +27,7 @@ export function run_Stage() {
         scale: [3,3],
         frame: [0.5, 0.5],
         caption: "Button",
-        graphics: "star",
+        graphics: "roundSquare",
         debug: true,
         draggable: true
     });
@@ -54,7 +54,7 @@ export function run_Stage() {
     });
     */
        
-    render();
+    stage.launch();
     
 }
 

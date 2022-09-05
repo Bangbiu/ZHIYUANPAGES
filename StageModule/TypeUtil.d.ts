@@ -38,6 +38,8 @@ declare type TickEvent = TickCallBack & TickEventProperties;
 declare type MouseEventInfo = MouseEvent | WheelEvent;
 declare type MouseDispatchedEvent = (this: StageInteractive, event: ContextMouseEvent) => any;
 
+declare type KBEvent = (this: StageInteractive, ev: KeyboardEvent) => any;
+
 declare type Polygon = [number, number][];
 declare type ParsedPath = PathCommand[];
 

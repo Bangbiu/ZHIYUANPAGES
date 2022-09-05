@@ -1,12 +1,12 @@
 /*jshint esversion: ES2020 */
 // @ts-check
 
-import { Graphics2D } from "../tslib/Graphics2D.js";
-import { Color, Vector2D } from "../tslib/Struct.js";
-import { Animation } from "../tslib/Animation.js";
-import { ContextTransf, Object2D, StageInteractive, StageObject } from "../tslib/Object2D.js";
+import { Graphics2D } from "../StageModule/Graphics2D.js";
+import { Color, Vector2D } from "../StageModule/Struct.js";
+import { Animation } from "../StageModule/Animation.js";
+import { ContextTransf, Object2D, StageInteractive, StageObject } from "../StageModule/Object2D.js";
 
-/** @type {import("../tslib/TypeUtil.js").Renderable[]} */
+/** @type {import("../StageModule/TypeUtil.js").Renderable[]} */
 const renderList = [];
 /** @type {CanvasRenderingContext2D} */
 let ctx;
@@ -25,9 +25,8 @@ export function setCanvas(canvas) {
 export function run_Graphics2D() {
     
     let g = new Graphics2D([[100,100],[200,200],[100,200]]);
-    g.log();
     ctx.fillStyle = new Color(255,0,0).value;
-    g.render(ctx,false,true);
+    g.render(ctx,new Vector2D(1,1),false,true);
     
 }
 

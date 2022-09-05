@@ -1,8 +1,8 @@
 /*jshint esversion: ES2020 */
 import * as SMath from "./SMath.js";
 import { Vector2D, Rect2D, Rotation2D } from "./Struct.js";
-import { Graphizable, ParsedPath, PathCommand, Polygon, Renderable } from "./TypeUtil";
-import PATH from './PathRes.json' assert {type: 'json'}
+import { Graphizable, ParsedPath, Polygon, Renderable } from "./TypeUtil";
+import PATH from './Presets/Paths.json' assert {type: 'json'}
 
 export {
     PATHCMD,

@@ -1,9 +1,9 @@
 /*jshint esversion: ES2020 */
 // @ts-check
-import { SObject } from "../tslib/DataUtil.js";
+import { SObject } from "../StageModule/DataUtil.js";
 
-import { Color, Rect2D, Rotation2D, Vector2D } from "../tslib/Struct.js";
-import { Graphics2D } from "../tslib/Graphics2D.js";
+import { Color, Rect2D, Rotation2D, Vector2D } from "../StageModule/Struct.js";
+import { Graphics2D } from "../StageModule/Graphics2D.js";
 
 export function run_SObject() {
     let testObj1 = new SObject();

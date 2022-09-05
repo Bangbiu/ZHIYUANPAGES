@@ -1,10 +1,10 @@
 // @ts-check
-import { Vector2D } from "./tslib/Struct.js";
+import { Vector2D } from "./StageModule/Struct.js";
 import * as t_SOBJ from "./tester/test_SObject.js";
 import * as t_OBJ2D from "./tester/test_Object2D.js";
 import * as t_COMP from "./tester/test_UIComp.js";
 import * as t_STG from "./tester/test_Stage.js"
-import { SObject } from "./tslib/DataUtil.js";
+import { SObject } from "./StageModule/DataUtil.js";
 
 const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById("mainCanvas"));
 const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext("2d"));

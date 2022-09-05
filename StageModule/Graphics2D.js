@@ -1,7 +1,7 @@
 /*jshint esversion: ES2020 */
 import * as SMath from "./SMath.js";
 import { Vector2D, Rect2D, Rotation2D } from "./Struct.js";
-import PATH from './PathRes.json' assert { type: 'json' };
+import PATH from './Presets/Paths.json' assert { type: 'json' };
 export { PATHCMD, POLY, PATH, Graphics2D, GraphicsText, };
 /**
  * COMMAND LETTER

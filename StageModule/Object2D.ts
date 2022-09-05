@@ -21,7 +21,8 @@ import {
     Transfizable, 
     Vectorizable, 
     Numerizable,
-    Polymorphistic
+    Polymorphistic,
+    KBEvent
 } from "./TypeUtil.js";
 
 export {
@@ -695,6 +696,11 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
         }
     }
 
+    bindKeyboardEvents(canv: HTMLCanvasElement): this {
+        canv.addEventListener("keydown", function(ev){ev.key})
+        return this;
+    }
+
     bindMouseEvents(canv: HTMLCanvasElement): this {
         let ctx = /** @type {CanvasRenderingContext2D} */canv.getContext("2d");
         //this.onMouseDown.bind(this) onMouseUp onMouseMove
@@ -710,7 +716,7 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
         canv.removeEventListener("mousedown", this.updateMouseInfo.bind(this,ctx));
         canv.removeEventListener("mouseup", this.updateMouseInfo.bind(this,ctx));
         canv.removeEventListener("mousemove", this.updateMouseInfo.bind(this,ctx));
-        canv.removeEventListener("wheel",this.updateMouseInfo.bind(this,ctx));
+        canv.removeEventListener("wheel", this.updateMouseInfo.bind(this,ctx));
         return this;
     }
     
@@ -726,6 +732,18 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
                 return true;
         }
         return false;
+    }
+
+    onKeyDown(event: KeyboardEvent) {
+        
+    }
+
+    onKeyPress(event: KeyboardEvent) {
+
+    }
+
+    onKeyUp(event: KeyboardEvent) {
+
     }
     
     onMouseEnter(event: ContextMouseEvent) {
