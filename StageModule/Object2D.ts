@@ -1,16 +1,15 @@
 /*jshint esversion: ES2020 */
 import { Vector2D, Rect2D, Rotation2D, Color } from "./Struct.js";
-import { SObject, ASN_DEF, DATA_IDEN, DATA_UNINIT, DATA_CLONE, EventList, StateMap } from "./DataUtil.js";
+import { SObject, ASN_DEF, DATA_IDEN, DATA_UNINIT, DATA_CLONE, StateMap, ListenerList, ListenerMap} from "./DataUtil.js";
 import { Graphics2D } from "./Graphics2D.js";
 import { Animation } from "./Animation.js";
 import { 
     AnimationType, 
     ContextTransfProperties, 
     DataAssignType, 
-    MouseDispatchedEvent, 
+    MouseCallBack, 
     MouseEventBehavior, 
     MouseEventInfo, 
-    MouseEventType, 
     Object2DProperties, 
     Renderable, 
     StageInteractiveProperties, 
@@ -22,19 +21,40 @@ import {
     Vectorizable, 
     Numerizable,
     Polymorphistic,
-    KBEvent
+    KBCallBack,
+    StageIntEventType,
+    Object2DEventType,
+    AllListenerEvent,
+    TickEventType,
+    MouseEventType,
+    KeyBoardEventType
 } from "./TypeUtil.js";
 
 export {
     ContextTransf,
     ContextMouseEvent,
-    TickEventList,
-    MouseEventMap,
+    TickListeners,
+    InteractiveListeners,
 
     Object2D,
     StageObject,
     StageInteractive,
     StageDynamic,
+}
+
+enum EVENTYPE {
+    ONTICK = "ontick",
+    
+    MOUSEMOVE = "mousemove",
+    MOUSEENTER = "mouseenter",
+    MOUSLEAVE = "mouseleave",
+    MOUSEDOWN = "mousedown",
+    MOUSEUP = "mouseup",
+    MOUSEWHEEL = "wheel",
+
+    KEYDOWN = "keydown",
+    KEYPRESS = "keypress",
+    KEYUP = "keyup",
 }
 
 class ContextTransf extends SObject implements ContextTransfProperties {
@@ -117,25 +137,6 @@ class ContextTransf extends SObject implements ContextTransfProperties {
     }
 }
 
-class TickEventList extends EventList<Object2DProperties, TickEvent> {
-
-    clone(other: Object2DProperties = this.actor): TickEventList {
-        return new TickEventList(other).copy(this);
-    }
-
-    trigger(delta: number): void {
-        this.forEach(event => {
-            event.prog += delta;
-            if (event.prog >= event.interval) {
-                event.prog = 0;
-                event.repeat--;
-                event.call(this.actor, event);
-            }
-        });
-        this.filter((event)=>(event.repeat != 0));
-    }
-}
-
 class ContextMouseEvent {
     /** @type {MouseEvent | WheelEvent} Event Arguments*/ info: MouseEventInfo;
     /** @type {Vector2D} Absolute Mouse Position*/        mousePos;
@@ -152,36 +153,69 @@ class ContextMouseEvent {
     }
 }
 
-class MouseEventMap extends SObject {
+class TickListeners extends ListenerMap {
+    ontick: ListenerList<TickEvent> = new ListenerList();
 
-    mousedown: MouseDispatchedEvent[] = [];
-    mouseup: MouseDispatchedEvent[] = [];
-    mousemove: MouseDispatchedEvent[] = [];
-    mouseenter: MouseDispatchedEvent[] = [];
-    mouseleave: MouseDispatchedEvent[] = [];
-    mousewheel: MouseDispatchedEvent[] = [];
-
-    #actor: StageInteractive = undefined;
-    
-    constructor(actor: StageInteractive) {
+    constructor(map?: TickListeners) {
         super();
-        this.#actor = actor;
+        if (map != undefined)
+            this.copy(map);
     }
 
-    get eventActor(): StageInteractive {
-        return this.#actor;
+    clone(): TickListeners {
+        return new TickListeners(this);
     }
 
-    bind(actor: StageInteractive) {
-        this.#actor = actor;
+    copy(other: TickListeners): this {
+        this.ontick = other.ontick.clone();
+        return this;
     }
 
-    clone(actor: StageInteractive = this.#actor): MouseEventMap {
-        return new MouseEventMap(actor).copy(actor);
+    addEventListener(eventType: TickEventType, callback: TickEvent) {
+        this.ontick.push(callback);
     }
 
-    addEvent(eventType: MouseEventType, callback: MouseDispatchedEvent) {
-        this[eventType].push(callback);
+    trigger(actor: any, eventType: TickEventType, ...argArray: any[]) {
+        const delta = argArray.length >= 1 ? argArray[0] : 1.0;
+        this.ontick.forEach(event => {
+            event.prog += delta;
+            if (event.prog >= event.interval) {
+                event.prog = 0;
+                event.repeat--;
+                event.call(actor, event);
+            }
+        });
+        this.ontick.filter((event)=>(event.repeat != 0));
+    }
+}
+
+class InteractiveListeners extends TickListeners {
+
+    mousedown:  ListenerList<MouseCallBack> = new ListenerList();
+    mouseup:    ListenerList<MouseCallBack> = new ListenerList();
+    mousemove:  ListenerList<MouseCallBack> = new ListenerList();
+    mouseenter: ListenerList<MouseCallBack> = new ListenerList();
+    mouseleave: ListenerList<MouseCallBack> = new ListenerList();
+    wheel: ListenerList<MouseCallBack> = new ListenerList();
+
+    keydown: ListenerList<KBCallBack> = new ListenerList();
+    keypress: ListenerList<KBCallBack> = new ListenerList();
+    keyup: ListenerList<KBCallBack> = new ListenerList();
+
+    clone(): InteractiveListeners {
+        return new InteractiveListeners(this);
+    }
+
+    addEventListener(eventType: StageIntEventType, listener: any) {
+        this[eventType].push(listener);
+    }
+
+    trigger(actor: any, eventType: StageIntEventType, ...argArray: any[]) {
+        if (eventType == "ontick") {
+            super.trigger(actor, EVENTYPE.ONTICK, ...argArray);
+        } else {
+            (this[eventType] as ListenerList<MouseCallBack>).trigger(actor,...argArray);
+        }
     }
 
     addBehavior(behavior: MouseEventBehavior) {
@@ -204,12 +238,6 @@ class MouseEventMap extends SObject {
             }
             delete this[behvrName];
         }
-    }
-
-    trigger(eventType: MouseEventType, event: ContextMouseEvent) {
-        this[eventType].forEach(e => {
-            e.call(this.#actor, event);
-        });
     }
 
     static BEHAVIOR_DRAGGABLE: MouseEventBehavior = {
@@ -248,7 +276,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
     borderWidth: number = 0.0;
     visible: boolean = true;
 
-    tickEvents: TickEventList;
+    listeners: TickListeners;
     states: StateMap<Object2DProperties> | undefined;
 
     debug: boolean = false;
@@ -287,7 +315,6 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         } else {
             this.transf = new ContextTransf(this, DATA_IDEN);
         }
-        this.tickEvents?.bind(this);
         if (this.states?.currentState == 0) this.states.bind(this);
         this.refresh();
         return this;
@@ -443,7 +470,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
     }
     
     update(delta: number = 1) {
-        this.tickEvents?.trigger(delta);
+        this.listeners?.trigger(this, EVENTYPE.ONTICK, delta);
     } 
 
     render(ctx: CanvasRenderingContext2D = Object2D.DefaultContext) {
@@ -476,15 +503,14 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         ctx.restore();
     }
 
-    dispatchTickEvent(callback: TickCallBack, settings: TickEventProperties = {}): TickEvent {
-        const event = Object.assign(callback, Object2D.DEF_TICKEVENT);
-        if (this.tickEvents == undefined) this.tickEvents = new TickEventList(this);
-        this.tickEvents.push(Object.assign(event, settings));
-        return event;
+    addTickEventListener(listener: TickCallBack, settings: TickEventProperties = {}) {
+        const event = Object.assign(listener, Object2D.DEF_TICKEVENTPROP);
+        this.listeners.addEventListener(EVENTYPE.ONTICK, Object.assign(event, settings));
+        return listener;  
     }
 
     temporify(life: number = 100): void {
-        this.dispatchTickEvent(this.finalize, {
+        this.addTickEventListener(this.finalize, {
             eventName: "finalizeCountDown",
             interval: life
         });
@@ -499,7 +525,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
             return undefined;
         }
 
-        return this.dispatchTickEvent(tickfunc, {
+        return this.addTickEventListener(tickfunc, {
             eventName: "animationOn_" + propText,
             interval: interval,
             repeat: -1
@@ -541,13 +567,13 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         borderWidth: 0,
         visible: true,
 
-        tickEvents: undefined,
+        listeners: new TickListeners(),
         states: undefined,
 
         debug: false
     };
 
-    static DEF_TICKEVENT: TickEventProperties = {
+    static DEF_TICKEVENTPROP: TickEventProperties = {
         eventName: "unknow",
         prog: 0,
         interval: 100,
@@ -664,7 +690,7 @@ class StageObject extends Object2D implements StageObjectProperties {
 
 class StageInteractive extends StageObject implements StageInteractiveProperties {
     isMouseIn: boolean = false;
-    mouseDispatches: MouseEventMap;
+    listeners: InteractiveListeners;
     declare states: StateMap<StageInteractiveProperties>;
     
     constructor( parameters: StageInteractiveProperties = {}, assign: DataAssignType = DATA_IDEN) {
@@ -675,7 +701,7 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
     }
 
     get draggable(): boolean {
-        return "draggable" in this.mouseDispatches;
+        return "draggable" in this.listeners;
     }
 
     clone(): StageInteractive {
@@ -684,44 +710,40 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
 
     resolveAll(other: StageInteractiveProperties = this): this {
         super.resolveAll(other);
-        other.mouseDispatches.bind(other);
         return this;
     }
 
     set draggable(value: boolean) {
         if (value) 
-            this.mouseDispatches.addBehavior(MouseEventMap.BEHAVIOR_DRAGGABLE);
+            this.listeners.addBehavior(InteractiveListeners.BEHAVIOR_DRAGGABLE);
         else {
-            this.mouseDispatches.removeBehavior("draggable");
+            this.listeners.removeBehavior("draggable");
         }
     }
 
-    bindKeyboardEvents(canv: HTMLCanvasElement): this {
-        canv.addEventListener("keydown", function(ev){ev.key})
+    bindKeyboardEvents(): this {
+        window.addEventListener(EVENTYPE.KEYDOWN, this.updateKeyBoardInfo.bind(this));
+        window.addEventListener(EVENTYPE.KEYPRESS, this.updateKeyBoardInfo.bind(this));
+        window.addEventListener(EVENTYPE.KEYUP, this.updateKeyBoardInfo.bind(this));
         return this;
     }
 
     bindMouseEvents(canv: HTMLCanvasElement): this {
         let ctx = /** @type {CanvasRenderingContext2D} */canv.getContext("2d");
-        //this.onMouseDown.bind(this) onMouseUp onMouseMove
-        canv.addEventListener("mousedown", this.updateMouseInfo.bind(this,ctx));
-        canv.addEventListener("mouseup", this.updateMouseInfo.bind(this,ctx));
-        canv.addEventListener("mousemove", this.updateMouseInfo.bind(this,ctx));
-        canv.addEventListener("wheel",this.updateMouseInfo.bind(this,ctx));
+        canv.addEventListener(EVENTYPE.MOUSEDOWN, this.updateMouseInfo.bind(this,ctx));
+        canv.addEventListener(EVENTYPE.MOUSEUP, this.updateMouseInfo.bind(this,ctx));
+        canv.addEventListener(EVENTYPE.MOUSEMOVE, this.updateMouseInfo.bind(this,ctx));
+        canv.addEventListener(EVENTYPE.MOUSEWHEEL,this.updateMouseInfo.bind(this,ctx));
         return this;
     }
 
-    removeMouseEvents(canv: HTMLCanvasElement): this {
-        let ctx = /** @type {CanvasRenderingContext2D} */canv.getContext("2d");
-        canv.removeEventListener("mousedown", this.updateMouseInfo.bind(this,ctx));
-        canv.removeEventListener("mouseup", this.updateMouseInfo.bind(this,ctx));
-        canv.removeEventListener("mousemove", this.updateMouseInfo.bind(this,ctx));
-        canv.removeEventListener("wheel", this.updateMouseInfo.bind(this,ctx));
+    addMouseEventListener(eventType: MouseEventType, listener: MouseCallBack): this {
+        this.listeners.addEventListener(eventType, listener);  
         return this;
     }
-    
-    addMouseEventListener(eventType: MouseEventType, event: MouseDispatchedEvent) {
-        this.mouseDispatches.addEvent(eventType,event);
+
+    addKeyBoardListener(eventType: KeyBoardEventType, listener: KBCallBack): this {
+        this.listeners.addEventListener(eventType, listener);
         return this;
     }
 
@@ -735,39 +757,39 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
     }
 
     onKeyDown(event: KeyboardEvent) {
-        
+        this.listeners.trigger(this, EVENTYPE.KEYDOWN, event);
     }
 
     onKeyPress(event: KeyboardEvent) {
-
+        this.listeners.trigger(this, EVENTYPE.KEYPRESS, event);
     }
 
     onKeyUp(event: KeyboardEvent) {
-
+        this.listeners.trigger(this, EVENTYPE.KEYUP, event)
     }
     
     onMouseEnter(event: ContextMouseEvent) {
-        this.mouseDispatches.trigger("mouseenter",event);
+        this.listeners.trigger(this, EVENTYPE.MOUSEENTER, event);
     }
 
     onMouseLeave(event: ContextMouseEvent){
-        this.mouseDispatches.trigger("mouseleave",event);
+        this.listeners.trigger(this, EVENTYPE.MOUSLEAVE, event);
     }
 
     onMouseMove(event: ContextMouseEvent) {
-        this.mouseDispatches.trigger("mousemove",event);
+        this.listeners.trigger(this, EVENTYPE.MOUSEMOVE, event);
     }
 
     onMouseDown(event: ContextMouseEvent) {
-        this.mouseDispatches.trigger("mousedown",event);
+        this.listeners.trigger(this, EVENTYPE.MOUSEDOWN, event);
     }
 
     onMouseUp(event: ContextMouseEvent) {
-        this.mouseDispatches.trigger("mouseup",event);
+        this.listeners.trigger(this, EVENTYPE.MOUSEUP, event);
     }
 
     onMouseWheel(event: ContextMouseEvent) {
-        this.mouseDispatches.trigger("mousewheel",event);
+        this.listeners.trigger(this, EVENTYPE.MOUSEWHEEL, event);
     }
 
     updateMouseInfo(ctx: CanvasRenderingContext2D = Object2D.DefaultContext, event: ContextMouseEvent | MouseEventInfo) {
@@ -785,11 +807,18 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
         }
         //Trigger Event
         if (this.isMouseIn) {
+            
+            
             switch (event.info.type) {
-                case "mousedown": { this.onMouseDown(event); break; }
-                case "mouseup" : { this.onMouseUp(event); break;}
-                case "mousemove" : { this.onMouseMove(event); break;} 
-                case "wheel" : { this.onMouseWheel(event); break;}
+                case EVENTYPE.MOUSEDOWN: { 
+                    this.onMouseDown(event); 
+                    //console.log(this.name + " " + event.info.type);
+                    break; 
+                    
+                }
+                case EVENTYPE.MOUSEUP : { this.onMouseUp(event); break;}
+                case EVENTYPE.MOUSEMOVE : { this.onMouseMove(event); break;} 
+                case EVENTYPE.MOUSEWHEEL : { this.onMouseWheel(event); break;}
             }
             this.toInternal(ctx);
             this.toInternal(event.mCtxPos);
@@ -803,11 +832,24 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
         ctx.restore();
     }
 
+    updateKeyBoardInfo(event: KeyboardEvent) {
+        switch (event.type) {
+            case EVENTYPE.KEYDOWN: { this.onKeyDown(event); break; }
+            case EVENTYPE.KEYPRESS : { this.onKeyPress(event); break;}
+            case EVENTYPE.KEYUP : { this.onKeyUp(event); break;} 
+        }
+        this.components.forEach(comp => {
+            if (comp instanceof StageInteractive) {
+                comp.updateKeyBoardInfo(event);
+            }
+        });
+    }
+
     static CUM_INDEX: number = 0;
     static ObjectList: StageInteractive[] = [];
     static CanvasDOM: HTMLCanvasElement = undefined;
     static DEF_PROP: StageInteractiveProperties = SObject.insertValues({
-        mouseDispatches: new MouseEventMap(undefined),
+        listeners: new InteractiveListeners(),
         states: undefined
     }, StageObject.DEF_PROP, DATA_CLONE);
 }

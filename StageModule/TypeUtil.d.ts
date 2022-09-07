@@ -1,11 +1,17 @@
 
-import { SObject , Attribution, StateMap} from "./DataUtil";
+import { SObject , Attribution, StateMap, ListenerMap} from "./DataUtil";
 import { Vector2D, Color, Rect2D, Rotation2D,  } from "./Struct";
 import { Graphics2D, PATHCMD } from "./Graphics2D";
-import { Object2D, StageInteractive, ContextTransf, ContextMouseEvent, TickEventList} from "./Object2D";
+import { Object2D, StageInteractive, ContextTransf, ContextMouseEvent, TickListeners, InteractiveListeners} from "./Object2D";
 
 // Types
-declare type MouseEventType =  "mousedown"|"mouseup"|"mousemove"|"mouseenter"|"mouseleave"|"mousewheel";
+declare type TickEventType = "ontick";
+declare type MouseEventType =  "mousedown"|"mouseup"|"mousemove"|"mouseenter"|"mouseleave"|"wheel";
+declare type KeyBoardEventType = "keydown"|"keypress"|"keyup";
+
+declare type Object2DEventType = TickEventType;
+declare type StageIntEventType = Object2DEventType | MouseEventType | KeyBoardEventType;
+
 declare type InteractiveState = "idle"|"hover"|"pressed";
 declare type JSDataType = "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
 declare type CuttingFunctionType = "warp"|"mirror"|"clamp";
@@ -32,13 +38,15 @@ declare type Graphizable = string | Graphics2D | Polygon;
 declare type Numerizable = number | string;
 declare type Transfizable = string | ContextTransfProperties | ContextTransf | Object2D;
 
-declare type TickCallBack = (this: Object2D, ev: TickEvent) => any;
 declare type TickEvent = TickCallBack & TickEventProperties;
+declare type TickCallBack = (this: Object2D, ev: TickEvent) => any;
 
 declare type MouseEventInfo = MouseEvent | WheelEvent;
-declare type MouseDispatchedEvent = (this: StageInteractive, event: ContextMouseEvent) => any;
+declare type MouseCallBack = (this: StageInteractive, ev: ContextMouseEvent) => any;
 
-declare type KBEvent = (this: StageInteractive, ev: KeyboardEvent) => any;
+declare type AllListenerEvent = TickCallBack & MouseCallBack & KBCallBack;
+
+declare type KBCallBack = (this: StageInteractive, ev: KeyboardEvent) => any;
 
 declare type Polygon = [number, number][];
 declare type ParsedPath = PathCommand[];
@@ -48,6 +56,11 @@ declare type ParsedPath = PathCommand[];
 declare interface Renderable {
     update(...params: any[]): void;
     render(ctx: CanvasRenderingContext2D): void
+}
+
+declare interface Reproducable {
+    clone(): Reproducable;
+    copy(other: Reproducable): Reproducable;
 }
 
 declare interface EventHandler {
@@ -70,12 +83,12 @@ declare interface ContextTransfProperties {
 
 declare interface MouseEventBehavior {
     bhvname: string;
-    mousedown?: MouseDispatchedEvent;
-    mouseup?: MouseDispatchedEvent;
-    mousemove?: MouseDispatchedEvent;
-    mouseenter?: MouseDispatchedEvent;
-    mouseleave?: MouseDispatchedEvent;
-    mousewheel?: MouseDispatchedEvent;
+    mousedown?: MouseCallBack;
+    mouseup?: MouseCallBack;
+    mousemove?: MouseCallBack;
+    mouseenter?: MouseCallBack;
+    mouseleave?: MouseCallBack;
+    wheel?: MouseCallBack;
 }
 
 declare interface Polymorphistic {
@@ -108,7 +121,7 @@ declare interface Object2DProperties {
     emissive?: Numerizable;
     borderWidth?: Numerizable;
     visible?: boolean;
-    tickEvents?: TickEventList;
+    listeners?: TickListeners;
     states?: StateMap<Object2DProperties>;
 
     debug?: boolean;
@@ -119,6 +132,7 @@ declare interface Object2DProperties {
 declare interface StageObjectSubProperties {
     mainBody?: boolean;
     innerTransf?: ContextTransf | string;
+    listeners?: TickListeners;
     states?: StateMap<StageObjectProperties>;
 }
 
@@ -126,10 +140,11 @@ declare type StageObjectProperties = Object2DProperties & StageObjectSubProperti
 
 declare interface StageInteractiveSubProperties {
     draggable?: boolean;
+    listeners?: InteractiveListeners;
     states?: StateMap<StageInteractiveProperties>
 }
 
-declare type StageInteractiveProperties = StageInteractiveSubProperties & StageObjectProperties;
+declare type StageInteractiveProperties = StageObjectProperties & StageInteractiveSubProperties;
 
 declare interface CanvasLabelSubProperties {
     text?: string;

@@ -8,6 +8,7 @@ import {
     JSDataType, 
     TraverseCallBack,
     Numerizable,
+    Reproducable,
 } from "./TypeUtil";
 
 const DATA_CLONE: DataAssignType = "clone";
@@ -25,7 +26,10 @@ export {
 
     SObject,
     Attribution,
-    EventList,
+    
+    ListenerList,
+    ListenerMap,
+
     StateMap,
     ASN_DEF,
     JSD_DEF,
@@ -53,7 +57,7 @@ Function.prototype["clone"] = function() {
 };
 
 
-class SObject {
+class SObject implements Reproducable {
 
     constructor( properties?: Object, assign: DataAssignType = ASN_DEF) {
         if (properties) this.insertValues(properties, assign);
@@ -163,11 +167,11 @@ class SObject {
         }
     }
 
-    log(attrName?: string, ...argArray: any[]): void {
-        this.logger(attrName, ...argArray)();
+    msg(attrName?: string, ...argArray: any[]): void {
+        this.msgr(attrName, ...argArray)();
     }
 
-    logger(attrName?: string, ...argArray: any[]): Function {
+    msgr(attrName?: string, ...argArray: any[]): Function {
         if (attrName) {
             const callee = this.attribution(attrName).getter(...argArray);
             return ()=>(console.log(callee()));
@@ -505,16 +509,14 @@ class Attribution extends SObject {
     }
 }
 
-class EventList<A extends Object, T extends Function> extends SObject implements ArrayLike<T> {
-
-    protected actor: A;
+class ListenerList<T extends Function> extends SObject implements ArrayLike<T> {
     protected len = 0;
 
     [n: number]: T
 
-    constructor(actor: A = undefined) {
+    constructor(list?: ListenerList<T>) {
         super();
-        this.bind(actor);
+        if (list != undefined) this.copy(list);
     }
 
     get length() {
@@ -535,24 +537,20 @@ class EventList<A extends Object, T extends Function> extends SObject implements
         return temp;
     }
 
-    clone(actor: A = this.actor): EventList<A,T> {
-        return new EventList<A,T>(actor).copy(this);
+    clone(): ListenerList<T> {
+        return new ListenerList<T>().copy(this);
     }
 
-    bind(actor: A) {
-        this.actor = actor;
-    }
-
-    copy(other: EventList<A,T>): this {
+    copy(other: ListenerList<T>): this {
         for (let index = 0; index < other.len; index++) {
             this.push(SObject.clone(other[index]));
         }
         return this;
     }
     
-    trigger(...argArray: any[]): void {
+    trigger(thisArg: any, ...argArray: any[]): void {
         for (let index = 0; index < this.len; index++) {
-            this[index].call(this.actor,...argArray);
+            this[index].call(thisArg,...argArray);
         }
     }
 
@@ -583,6 +581,35 @@ class EventList<A extends Object, T extends Function> extends SObject implements
     }
 
 }
+
+class ListenerMap extends SObject {
+
+    //[list: symbol]: ListenerList<Function>;
+    
+    constructor(map?: ListenerMap) {
+        super();
+        if (map != undefined) this.copy(map);
+    }
+
+    clone(): ListenerMap {
+        return new ListenerMap(this);
+    }
+
+    copy(other: ListenerMap): this {
+        SObject.updateValues(this, other, DATA_CLONE);
+        return this;
+    }
+
+    addEventListener(eventType: string, callback: Function) {
+        this[eventType].push(callback);
+    }
+
+    trigger(actor: any, eventType: string, eventArgs: Object) {
+        (this[eventType] as ListenerList<any>)?.trigger(actor, eventArgs);
+    }
+
+}
+
 
 class StateMap<T> extends SObject implements ArrayLike<T> {
     #len = 0;

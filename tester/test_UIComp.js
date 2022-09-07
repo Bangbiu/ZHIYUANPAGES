@@ -47,7 +47,7 @@ export function run_CanvasLabel() {
 
     obj2.add(obj1);
 
-    obj1.dispatchTickEvent(
+    obj1.addTickEventListener(
         function(ev) { this.rot.rad+=0.1; },
         {interval: 5, repeat: -1}
     );
@@ -92,7 +92,7 @@ export function run_CanvasLabel() {
 
     obj2.log("captionLabel.pos");
 
-    obj1.dispatchTickEvent(
+    obj1.addTickEventListener(
         function(ev) { this.rot.deg += 30; },
         {interval: 50, repeat: -1}
     );

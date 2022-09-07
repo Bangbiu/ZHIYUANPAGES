@@ -13,28 +13,19 @@ export {
 }
 
 class Stage extends CanvasContainer {
-    #canvas: HTMLCanvasElement;
-    #context: CanvasRenderingContext2D;
-    #lastTimeStamp: number;
 
-    constructor( parameters: StageProperties = {canvas: undefined}, assign: DataAssignType = DATA_IDEN) {
+    public lastTimeStamp: number;
+    readonly canvas: HTMLCanvasElement;
+    readonly context: CanvasRenderingContext2D;
+
+    constructor( parameters: StageProperties, assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);
         this.initialize(parameters, Stage.DEF_PROP, assign);
-        //this.updateValues(parameters,assign);
         window.addEventListener("resize", this.refresh.bind(this));
-        this.canvas = parameters.canvas;
-        this.#lastTimeStamp = 0;
-    }
-    
-    get canvas(): HTMLCanvasElement {
-        return this.#canvas;
-    }
-
-    set canvas(canv: HTMLCanvasElement) {
-        if (canv == undefined) return;
-        this.#canvas = canv;
-        this.#context = canv.getContext("2d");
-        this.bindMouseEvents(canv);
+        this.context = this.canvas.getContext("2d");
+        this.bindMouseEvents(this.canvas);
+        this.bindKeyboardEvents();
+        this.lastTimeStamp = 0;
     }
 
     refresh(): this {
@@ -60,13 +51,13 @@ class Stage extends CanvasContainer {
     }
 
     launch(timestamp: number = Date.now()): void {
-        if (this.#lastTimeStamp > 100) {
-            const delta = (timestamp - this.#lastTimeStamp) / Stage.RENDER_RATE;
-            this.#context.clearRect(0,0,this.#canvas.width,this.#canvas.height);
+        if (this.lastTimeStamp > 100) {
+            const delta = (timestamp - this.lastTimeStamp) / Stage.RENDER_RATE;
+            this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
             // Updating & Rendering
-            this.tick(this.#context, delta);
+            this.tick(this.context, delta);
         }
-        this.#lastTimeStamp = timestamp;
+        this.lastTimeStamp = timestamp;
         window.requestAnimationFrame(this.launch.bind(this));
     }
 

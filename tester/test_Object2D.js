@@ -4,7 +4,7 @@
 import { Graphics2D } from "../StageModule/Graphics2D.js";
 import { Color, Vector2D } from "../StageModule/Struct.js";
 import { Animation } from "../StageModule/Animation.js";
-import { ContextTransf, Object2D, StageInteractive, StageObject } from "../StageModule/Object2D.js";
+import { ContextTransf, Object2D, StageInteractive, StageObject, TickListeners } from "../StageModule/Object2D.js";
 
 /** @type {import("../StageModule/TypeUtil.js").Renderable[]} */
 const renderList = [];
@@ -44,6 +44,8 @@ export function run_ContextTransf() {
 
 
 export function run_Object2D() {
+    
+    console.log(new TickListeners());
 
     let obj1 = new Object2D({
         pos: [100,100], 
@@ -54,7 +56,9 @@ export function run_Object2D() {
         scale: [1,2]
     });
 
-    obj1.dispatchTickEvent(
+    
+
+    obj1.addTickEventListener(
         function(ev){this.rot.rad+=0.1;},
         {interval: 10, repeat: -1}
     );
@@ -97,7 +101,7 @@ export function run_StageObject() {
         borderWidth: 1
     });
 
-    obj1.dispatchTickEvent(
+    obj1.addTickEventListener(
         function(ev){this.rot.rad+=0.1;},
         {interval: 10, repeat: -1}
     );
@@ -170,7 +174,7 @@ export function run_StageInteractive(canv) {
 
     obj2.add(obj1);
 
-    obj1.dispatchTickEvent(
+    obj1.addTickEventListener(
         function(ev) { this.rot.rad+=0.1; },
         {interval: 5, repeat: -1}
     );
@@ -202,7 +206,9 @@ export function run_StateSwitching() {
     obj2.restore();
     obj2.addState("state3", {graphics: "disc", fillColor: "yellow"});
 
-    obj2.dispatchTickEvent(function(ev){this.toggle()}, {interval: 50, repeat: -1});
+    obj2.addTickEventListener(
+        function(ev){this.toggle()}, {interval: 50, repeat: -1}
+    );
 
     //obj2.switchTo(0);
 

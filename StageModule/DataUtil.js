@@ -18,7 +18,7 @@ const ATTR_SPLITER = '.';
 const doNothing = function (...argArray) { return undefined; };
 let ASN_DEF = DATA_CLONE;
 let JSD_DEF = ["number", "boolean"];
-export { doNothing, SObject, Attribution, EventList, StateMap, ASN_DEF, JSD_DEF, DATA_IDEN, DATA_CLONE, DATA_UNINIT };
+export { doNothing, SObject, Attribution, ListenerList, ListenerMap, StateMap, ASN_DEF, JSD_DEF, DATA_IDEN, DATA_CLONE, DATA_UNINIT };
 Function.prototype["clone"] = function () {
     var cloneObj = this;
     if (this.__isClone) {
@@ -122,10 +122,10 @@ class SObject {
             return () => (console.log(this.toString()));
         }
     }
-    log(attrName, ...argArray) {
-        this.logger(attrName, ...argArray)();
+    msg(attrName, ...argArray) {
+        this.msgr(attrName, ...argArray)();
     }
-    logger(attrName, ...argArray) {
+    msgr(attrName, ...argArray) {
         if (attrName) {
             const callee = this.attribution(attrName).getter(...argArray);
             return () => (console.log(callee()));
@@ -430,11 +430,12 @@ class Attribution extends SObject {
     }
 }
 _Attribution_owner = new WeakMap(), _Attribution_name = new WeakMap();
-class EventList extends SObject {
-    constructor(actor = undefined) {
+class ListenerList extends SObject {
+    constructor(list) {
         super();
         this.len = 0;
-        this.bind(actor);
+        if (list != undefined)
+            this.copy(list);
     }
     get length() {
         return this.len;
@@ -450,11 +451,8 @@ class EventList extends SObject {
         delete this[this.len];
         return temp;
     }
-    clone(actor = this.actor) {
-        return new EventList(actor).copy(this);
-    }
-    bind(actor) {
-        this.actor = actor;
+    clone() {
+        return new ListenerList().copy(this);
     }
     copy(other) {
         for (let index = 0; index < other.len; index++) {
@@ -462,9 +460,9 @@ class EventList extends SObject {
         }
         return this;
     }
-    trigger(...argArray) {
+    trigger(thisArg, ...argArray) {
         for (let index = 0; index < this.len; index++) {
-            this[index].call(this.actor, ...argArray);
+            this[index].call(thisArg, ...argArray);
         }
     }
     forEach(callback) {
@@ -489,6 +487,27 @@ class EventList extends SObject {
         while (this.len > 0) {
             this.pop();
         }
+    }
+}
+class ListenerMap extends SObject {
+    //[list: symbol]: ListenerList<Function>;
+    constructor(map) {
+        super();
+        if (map != undefined)
+            this.copy(map);
+    }
+    clone() {
+        return new ListenerMap(this);
+    }
+    copy(other) {
+        SObject.updateValues(this, other, DATA_CLONE);
+        return this;
+    }
+    addEventListener(eventType, callback) {
+        this[eventType].push(callback);
+    }
+    trigger(actor, eventType, eventArgs) {
+        this[eventType]?.trigger(actor, eventArgs);
     }
 }
 class StateMap extends SObject {

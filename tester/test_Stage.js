@@ -1,3 +1,5 @@
+/*jshint esversion: ES2020 */
+// @ts-check
 import { CanvasButton } from "../StageModule/CanvasUIComponents.js";
 import { DATA_CLONE } from "../StageModule/DataUtil.js";
 import { Graphics2D, PATH, PATHCMD, POLY } from "../StageModule/Graphics2D.js";
@@ -32,9 +34,9 @@ export function run_Stage() {
         draggable: true
     });
 
-    
+    /*
     let angle = 0.1;
-    stage.addMouseEventListener("mousewheel", function(e) {
+    stage.addMouseEventListener("wheel", function(e) {
         const x = 50 * Math.cos(angle);
         const y = 50 * Math.sin(angle);
         angle-=Math.sign(e.info.wheelDelta) * 0.1;
@@ -42,7 +44,7 @@ export function run_Stage() {
         btn1.graphics = new Graphics2D(`M 50,0 A 50,50,0,${large},1,${x},${y} L 0,0`);
         btn1.refresh();
     });
-    
+    */
 
     stage.add(btn1);
     
@@ -55,12 +57,8 @@ export function run_Stage() {
     */
        
     stage.launch();
-    
-}
 
-function render(timestamp) {
-    ctx.clearRect(0,0,2000,2000);
-    stage.tick(ctx);
-
-    window.requestAnimationFrame(render);
+    stage.addKeyBoardListener("keydown", function(ev) {console.log(ev.code);})
+    btn1.addMouseEventListener("mousedown", function(ev) {console.log("down");})
+    btn1.msg("listeners");
 }
