@@ -1,5 +1,5 @@
 
-import { SObject , Attribution, StateMap, ListenerMap} from "./DataUtil";
+import { SObject , Attribution, StateMap} from "./DataUtil";
 import { Vector2D, Color, Rect2D, Rotation2D,  } from "./Struct";
 import { Graphics2D, PATHCMD } from "./Graphics2D";
 import { Object2D, StageInteractive, ContextTransf, ContextMouseEvent, TickListeners, InteractiveListeners} from "./Object2D";

@@ -56,9 +56,9 @@ export function run_Stage() {
     });
     */
        
-    stage.launch();
+    stage.launch(false);
 
-    stage.addKeyBoardListener("keydown", function(ev) {console.log(ev.code);})
+    stage.addKeyBoardListener("keydown", function(ev) {console.log();})
     btn1.addMouseEventListener("mousedown", function(ev) {console.log("down");})
     btn1.msg("listeners");
 }

@@ -13,7 +13,13 @@ class Stage extends CanvasContainer {
         this.context = this.canvas.getContext("2d");
         this.bindMouseEvents(this.canvas);
         this.bindKeyboardEvents();
-        this.lastTimeStamp = 0;
+    }
+    render() {
+        this.clear();
+        super.render(this.context);
+    }
+    tick(delta = 1.0) {
+        super.tick(this.context, delta);
     }
     refresh() {
         const canv = this.canvas;
@@ -29,15 +35,27 @@ class Stage extends CanvasContainer {
         console.log(new Vector2D(this.width, this.height));
         return this;
     }
-    launch(timestamp = Date.now()) {
-        if (this.lastTimeStamp > 100) {
-            const delta = (timestamp - this.lastTimeStamp) / Stage.RENDER_RATE;
-            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            // Updating & Rendering
-            this.tick(this.context, delta);
-        }
+    clear() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    launch(eventCoRender = true) {
+        if (eventCoRender)
+            this.canvas.addEventListener("mousemove", this.render.bind(this));
+        this.lastTimeStamp = Date.now() - Stage.RENDER_RATE;
+        this.load(Date.now());
+    }
+    launchByUpdate() {
+        this.canvas.addEventListener("mousemove", this.tick.bind(this));
+    }
+    load(timestamp) {
+        const delta = (timestamp - this.lastTimeStamp) / Stage.RENDER_RATE;
+        // Clear Last Frame
+        this.clear();
+        // Updating & Rendering Current Frame
+        this.tick(delta);
+        // Record TimeStamp
         this.lastTimeStamp = timestamp;
-        window.requestAnimationFrame(this.launch.bind(this));
+        window.requestAnimationFrame(this.load.bind(this));
     }
 }
 Stage.DEF_PROP = SObject.insertValues({
