@@ -1,7 +1,6 @@
 /*jshint esversion: 6 */
 // @ts-check
 import { DATA_CLONE, DATA_IDEN, DATA_UNINIT, SObject } from "./DataUtil.js";
-import { StageInteractive } from "./Object2D.js";
 import { CanvasContainer } from "./CanvasUIComponents.js";
 import { Vector2D } from "./Struct.js";
 export { Stage, };
@@ -21,31 +20,38 @@ class Stage extends CanvasContainer {
     tick(delta = 1.0) {
         super.tick(this.context, delta);
     }
-    refresh() {
+    resize() {
         const canv = this.canvas;
         const box = canv.getBoundingClientRect();
         canv.width = window.innerWidth - box.left * 2;
         canv.height = window.innerHeight - box.top * 2;
-        this.width = canv.width;
-        this.height = canv.height;
-        super.refresh();
+        super.resize(canv.width, canv.height);
         window["StageWidth"] = canv.width;
-        window["StageHeight"] = canv.width;
-        console.clear();
-        console.log(new Vector2D(this.width, this.height));
+        window["StageHeight"] = canv.height;
         return this;
+    }
+    refresh() {
+        this.resize();
+        if (this.debug) {
+            console.clear();
+            console.log(new Vector2D(this.width, this.height));
+        }
+        return super.refresh();
     }
     clear() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        return this;
     }
     launch(eventCoRender = true) {
         if (eventCoRender)
             this.canvas.addEventListener("mousemove", this.render.bind(this));
-        this.lastTimeStamp = Date.now() - Stage.RENDER_RATE;
-        this.load(Date.now());
+        this.lastTimeStamp = window.performance.now() - Stage.RENDER_RATE * 2;
+        this.load(this.lastTimeStamp);
+        return this;
     }
     launchByUpdate() {
         this.canvas.addEventListener("mousemove", this.tick.bind(this));
+        return this;
     }
     load(timestamp) {
         const delta = (timestamp - this.lastTimeStamp) / Stage.RENDER_RATE;
@@ -62,5 +68,5 @@ Stage.DEF_PROP = SObject.insertValues({
     canvas: undefined,
     fillColor: "black",
     graphics: "rect",
-}, StageInteractive.DEF_PROP, DATA_CLONE);
+}, CanvasContainer.DEF_PROP, DATA_CLONE);
 Stage.RENDER_RATE = 1000 / 60.0;

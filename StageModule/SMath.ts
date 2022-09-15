@@ -4,6 +4,9 @@ export {
     mirror,
     warp,
     step,
+    choose,
+    arbittr,
+    isInObject,
     correctRadii,
     pow,
     mat2DotVec2,
@@ -25,12 +28,35 @@ function mirror(value: number, mid: number): number {
 }
 
 function warp(value: number, wall: number): number {
-    return value % wall;
+    return (value % wall + wall) % wall;
+}
+
+function dwarp(value: number, wallMin: number, wallMax: number) {
+
 }
 
 function step(value: number,des: number): number {
     if (value >= des) return 1.0;
     else return 0.0;
+}
+
+function choose(option: number, ...argArray: any[]) {
+    return argArray[option];
+}
+
+function arbittr(target: Object): any {
+    let keys = [];
+    for (const key in target) {
+        keys.push(key);
+    }
+    return target[keys[Math.floor(Math.random() * keys.length)]];
+}
+
+function isInObject(target: Object, elem: any): boolean {
+    for (const key in target) {
+        if (target[key] == elem) return true;
+    }
+    return false;
 }
 
 function correctRadii(signedRx, signedRy, x1p, y1p) {

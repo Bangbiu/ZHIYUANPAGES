@@ -1,8 +1,8 @@
 /*jshint esversion: ES2020 */
 import { DATA_CLONE, DATA_IDEN, DATA_UNINIT, SObject, StateMap } from "./DataUtil.js";
 import { GraphicsText } from "./Graphics2D.js";
-import { Object2D, StageInteractive } from "./Object2D.js";
-import { Color } from "./Struct.js";
+import { Object2D, StageInteractive, StageObject } from "./Object2D.js";
+import { Color, Rect2D, Vector2D } from "./Struct.js";
 export { CanvasDisplayComponent, CanvasInterativeComponent, CanvasLabel, CanvasButton, CanvasContainer };
 /**
  * Display Comp:
@@ -154,6 +154,24 @@ class CanvasContainer extends CanvasInterativeComponent {
         this.refresh();
         return this;
     }
+    refresh() {
+        this.components.forEach(comp => {
+            if (comp.frame instanceof Rect2D) {
+                if (comp.frame.x != undefined)
+                    comp.pos.x = this.width * comp.frame.x / this.grid.x;
+                if (comp.frame.y != undefined)
+                    comp.pos.y = this.height * comp.frame.y / this.grid.y;
+                if (comp.frame.width != undefined)
+                    comp.width = this.width * comp.frame.width / this.grid.x;
+                if (comp.frame.height != undefined)
+                    comp.height = this.height * comp.frame.height / this.grid.y;
+            }
+            if (comp instanceof StageObject) {
+                comp.refresh();
+            }
+        });
+        return this;
+    }
 }
 CanvasContainer.LEFT = "left";
 CanvasContainer.RIGHT = "right";
@@ -163,5 +181,6 @@ CanvasContainer.CENTER = "center";
 CanvasContainer.DEF_PROP = SObject.insertValues({
     fillColor: "white",
     graphics: "rect",
+    grid: new Vector2D(1, 1)
 }, CanvasInterativeComponent.DEF_PROP, DATA_CLONE);
 CanvasContainer.CUM_INDEX = 0;

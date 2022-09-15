@@ -157,6 +157,10 @@ class SObject implements Reproducable {
         return res;
     }
 
+    subset(propNames: string[]): Object {
+        return SObject.subset(this, propNames);
+    }
+
     printer(attrName?: string, ...argArray: any[]): Function {
         if (attrName) {
             const attr = this.attribution(attrName);
@@ -394,6 +398,16 @@ class SObject implements Reproducable {
         SObject.traverse(obj2, cmp2);
         if (!res) return false;
         return true;
+    }
+
+    static subset(target: Object, propNames: string[]): Object {
+        const res = {};
+        propNames.forEach(prop => {
+            SObject.tryGet(target, prop, function(value) {
+                res[prop] = value;
+            });
+        });
+        return res;
     }
 
     static CUM_INDEX: number = 0;

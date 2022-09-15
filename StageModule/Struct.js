@@ -209,6 +209,14 @@ class Vector2D extends SObject {
     from(other, u = 1) {
         return other.clone().scale(-u).add(this);
     }
+    isInRect(range, top = 0, right = 1, bottom = 1) {
+        if (range instanceof Rect2D)
+            return this.x >= range.left && this.x <= range.right
+                && this.y >= range.top && this.y <= range.bottom;
+        else
+            return this.x >= range && this.x <= right
+                && this.y >= top && this.y <= bottom;
+    }
     toString() {
         return `<${this.name}:(${this.x},${this.y})>`;
     }
@@ -282,6 +290,12 @@ class Rect2D extends Vector2D {
     }
     get seq() {
         return [this.x, this.y, this.width, this.height];
+    }
+    get pos() {
+        return new Vector2D(this);
+    }
+    get size() {
+        return new Vector2D(this.width, this.height);
     }
     getPivot(horiz = 0, verti = 0) {
         if (horiz instanceof Vector2D) {
@@ -359,6 +373,14 @@ class Rect2D extends Vector2D {
     }
     toString() {
         return `<${this.name}:(${this.x},${this.y},${this.width},${this.height})>`;
+    }
+    isInRect(range, top, right, bottom) {
+        if (range instanceof Rect2D)
+            return this.left >= range.left && this.right <= range.right
+                && this.top >= range.top && this.bottom <= range.bottom;
+        else
+            return this.left >= range && this.right <= right
+                && this.top >= top && this.bottom <= bottom;
     }
 }
 class Color extends SObject {

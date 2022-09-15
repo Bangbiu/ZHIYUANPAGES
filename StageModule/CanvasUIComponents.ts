@@ -2,8 +2,8 @@
 
 import { ASN_DEF, DATA_CLONE, DATA_IDEN, DATA_UNINIT, SObject, StateMap } from "./DataUtil.js";
 import { Graphics2D, GraphicsText } from "./Graphics2D.js";
-import { ContextMouseEvent, Object2D, StageInteractive } from "./Object2D.js";
-import { Color } from "./Struct.js";
+import { ContextMouseEvent, Object2D, StageInteractive, StageObject } from "./Object2D.js";
+import { Color, Rect2D, Vector2D } from "./Struct.js";
 import { CanvasButtonProperties, CanvasContainerProperties, CanvasLabelProperties, DataAssignType } from "./TypeUtil";
 
 export {
@@ -194,6 +194,9 @@ class CanvasButton extends CanvasInterativeComponent {
 
 class CanvasContainer extends CanvasInterativeComponent {
 
+    grid: Vector2D;
+    padding: Rect2D;
+
     constructor( parameters: CanvasContainerProperties = {}, assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);
         this.initialize(parameters, CanvasContainer.DEF_PROP, assign);
@@ -209,6 +212,25 @@ class CanvasContainer extends CanvasInterativeComponent {
         return this;
     }
 
+    refresh(): this {
+        this.components.forEach(comp => {
+            if (comp.frame instanceof Rect2D) {
+                if (comp.frame.x != undefined)
+                    comp.pos.x = this.width * comp.frame.x / this.grid.x;
+                if (comp.frame.y != undefined)
+                    comp.pos.y = this.height * comp.frame.y / this.grid.y;
+                if (comp.frame.width != undefined)
+                    comp.width = this.width * comp.frame.width / this.grid.x;
+                if (comp.frame.height != undefined)
+                    comp.height = this.height * comp.frame.height / this.grid.y;
+            }
+            if (comp instanceof StageObject) {
+                comp.refresh();
+            }
+        });
+        return this;
+    }
+
     static LEFT = "left";
     static RIGHT = "right";
     static TOP = "top";
@@ -218,6 +240,7 @@ class CanvasContainer extends CanvasInterativeComponent {
     static DEF_PROP: CanvasContainerProperties = SObject.insertValues({
         fillColor: "white",
         graphics: "rect",
+        grid: new Vector2D(1,1)
     }, CanvasInterativeComponent.DEF_PROP, DATA_CLONE);
 
     static CUM_INDEX = 0;

@@ -82,8 +82,8 @@ export function run_Object2D() {
     });
     
     
-    obj1.log();
-    obj2.log();
+    obj1.msg();
+    obj2.msg();
 
 
     renderList.push(obj1);
@@ -128,8 +128,8 @@ export function run_StageObject() {
     obj2.add(obj1);
     //obj1.trySet("tickEvents.0.interval", 1);
     
-    obj1.log();
-    obj2.log();
+    obj1.msg();
+    obj2.msg();
 
     //renderList.push(obj1);
     renderList.push(obj2);
@@ -178,8 +178,8 @@ export function run_StageInteractive(canv) {
         function(ev) { this.rot.rad+=0.1; },
         {interval: 5, repeat: -1}
     );
-    obj1.log();
-    obj2.log();
+    obj1.msg();
+    obj2.msg();
 
     renderList.push(obj1);
     renderList.push(obj2);
@@ -212,8 +212,8 @@ export function run_StateSwitching() {
 
     //obj2.switchTo(0);
 
-    obj1.log();
-    obj2.log();
+    obj1.msg();
+    obj2.msg();
     
     renderList.push(obj1);
     renderList.push(obj2);

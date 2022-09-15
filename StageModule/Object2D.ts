@@ -1,8 +1,17 @@
 /*jshint esversion: ES2020 */
 import { Vector2D, Rect2D, Rotation2D, Color } from "./Struct.js";
-import { SObject, ASN_DEF, DATA_IDEN, DATA_UNINIT, DATA_CLONE, StateMap, ListenerList, ListenerMap} from "./DataUtil.js";
 import { Graphics2D } from "./Graphics2D.js";
 import { Animation } from "./Animation.js";
+import { 
+    SObject, 
+    ASN_DEF, 
+    DATA_IDEN, 
+    DATA_UNINIT, 
+    DATA_CLONE, 
+    StateMap, 
+    ListenerList, 
+    ListenerMap
+} from "./DataUtil.js";
 import { 
     AnimationType, 
     ContextTransfProperties, 
@@ -23,11 +32,10 @@ import {
     Polymorphistic,
     KBCallBack,
     StageIntEventType,
-    Object2DEventType,
-    AllListenerEvent,
     TickEventType,
     MouseEventType,
-    KeyBoardEventType
+    KeyBoardEventType,
+    RenderableProperties
 } from "./TypeUtil.js";
 
 export {
@@ -183,6 +191,7 @@ class TickListeners extends ListenerMap {
                 event.prog = 0;
                 event.repeat--;
                 event.call(actor, event);
+                
             }
         });
         this.ontick.filter((event)=>(event.repeat != 0));
@@ -261,6 +270,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
     ID: number;
 
     frame: Rect2D;
+
     pos: Vector2D;
     scale: Vector2D;
     stret: Vector2D;
@@ -316,7 +326,6 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
             this.transf = new ContextTransf(this, DATA_IDEN);
         }
         if (this.states?.currentState == 0) this.states.bind(this);
-        this.refresh();
         return this;
     }
 
@@ -389,10 +398,20 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         return this;
     }
 
-    reframe(x: number = this.x, y: number = this.y, width: number = this.width, height: number = this.height): this {
-        this.pos.moveTo(x, y);
-        this.width = this.width;
-        this.height = this.height;
+    resize(width: number | Vector2D = this.width, height: number = this.height): this {
+        if (width instanceof Vector2D) {
+            this.width = width.x;
+            this.height = width.y;
+        } else {
+            this.width = width;
+            this.height = height;
+        }
+        return this;
+    }
+
+    reframe(frame: Rect2D): this {
+        if (frame == undefined) return this;
+
         return this;
     }
 
@@ -401,6 +420,13 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         super.copy(other);
         this.ID = ID;
         return this;
+    }
+
+    copyStyle(other: RenderableProperties) {
+        this.copy(SObject.subset(other,
+            ["graphics", "fillColor", "borderColor", "emissiveColor", 
+            "emissive", "borderWidth", "visible"]
+        ));
     }
 
     clone(): Object2D {
@@ -469,7 +495,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         this.render(ctx);
     }
     
-    update(delta: number = 1) {
+    update(delta: number = 1.0) {
         this.listeners?.trigger(this, EVENTYPE.ONTICK, delta);
     } 
 
@@ -503,10 +529,10 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         ctx.restore();
     }
 
-    addTickEventListener(listener: TickCallBack, settings: TickEventProperties = {}) {
+    addTickEventListener(listener: TickCallBack, settings: TickEventProperties = {}): TickEvent {
         const event = Object.assign(listener, Object2D.DEF_TICKEVENTPROP);
         this.listeners.addEventListener(EVENTYPE.ONTICK, Object.assign(event, settings));
-        return listener;  
+        return event;  
     }
 
     temporify(life: number = 100): void {
@@ -634,6 +660,7 @@ class StageObject extends Object2D implements StageObjectProperties {
                 comp.refresh();
             }
         });
+        super.refresh();
         return this;
     }
 

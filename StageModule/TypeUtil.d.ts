@@ -101,7 +101,17 @@ declare interface PathCommand {
     args: number[];
 }
 
-declare interface Object2DProperties {
+declare interface RenderableProperties {
+    graphics?: Graphizable;
+    fillColor?: Colorizable;
+    borderColor?: Colorizable;
+    emissiveColor?: Colorizable;
+    emissive?: Numerizable;
+    borderWidth?: Numerizable;
+    visible?: boolean;
+}
+
+declare interface Object2DSubProperties {
     name?: string;
     x?: Numerizable;
     y?: Numerizable;
@@ -113,14 +123,7 @@ declare interface Object2DProperties {
     stret?: Vectorizable;
     rot?: Rotationizable;
     transf?: Transfizable;
-    graphics?: Graphizable;
-    fillColor?: Colorizable;
-    borderColor?: Colorizable;
-    emissiveColor?: Colorizable;
 
-    emissive?: Numerizable;
-    borderWidth?: Numerizable;
-    visible?: boolean;
     listeners?: TickListeners;
     states?: StateMap<Object2DProperties>;
 
@@ -128,6 +131,8 @@ declare interface Object2DProperties {
 
     [props: string]: any;
 }
+
+declare type Object2DProperties = RenderableProperties & Object2DSubProperties;
 
 declare interface StageObjectSubProperties {
     mainBody?: boolean;
@@ -171,7 +176,7 @@ declare type CanvasButtonProperties = CanvasIntCompProperites & CanvasButtonSubP
 
 declare interface CanvasContainerSubProperties {
     title?: string;
-    Grid?: Vectorizable;
+    grid?: Vectorizable;
 }
 
 declare type CanvasContainerProperties = CanvasIntCompProperites & CanvasContainerSubProperties;

@@ -1,4 +1,4 @@
-export { clamp, mirror, warp, step, correctRadii, pow, mat2DotVec2, vec2Scale, vec2Add, vec2Angle };
+export { clamp, mirror, warp, step, choose, arbittr, isInObject, correctRadii, pow, mat2DotVec2, vec2Scale, vec2Add, vec2Angle };
 function clamp(value, max, min = 0.0) {
     if (value < min)
         return min;
@@ -14,13 +14,32 @@ function mirror(value, mid) {
         return 2 * mid - value;
 }
 function warp(value, wall) {
-    return value % wall;
+    return (value % wall + wall) % wall;
+}
+function dwarp(value, wallMin, wallMax) {
 }
 function step(value, des) {
     if (value >= des)
         return 1.0;
     else
         return 0.0;
+}
+function choose(option, ...argArray) {
+    return argArray[option];
+}
+function arbittr(target) {
+    let keys = [];
+    for (const key in target) {
+        keys.push(key);
+    }
+    return target[keys[Math.floor(Math.random() * keys.length)]];
+}
+function isInObject(target, elem) {
+    for (const key in target) {
+        if (target[key] == elem)
+            return true;
+    }
+    return false;
 }
 function correctRadii(signedRx, signedRy, x1p, y1p) {
     const prx = Math.abs(signedRx);

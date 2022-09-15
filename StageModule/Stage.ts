@@ -1,10 +1,7 @@
 /*jshint esversion: 6 */
 // @ts-check
 import { DATA_CLONE, DATA_IDEN, DATA_UNINIT, SObject } from "./DataUtil.js";
-import { StageInteractive } from "./Object2D.js";
-import { CanvasContainer, CanvasDisplayComponent, CanvasInterativeComponent } from "./CanvasUIComponents.js";
-import { Color } from "./Struct.js";
-import { Graphics2D } from "./Graphics2D.js";
+import { CanvasContainer } from "./CanvasUIComponents.js";
 import { Vector2D } from "./Struct.js";
 import { DataAssignType, StageProperties } from "./TypeUtil";
 
@@ -35,42 +32,50 @@ class Stage extends CanvasContainer {
     tick(delta: any = 1.0) {
         super.tick(this.context, delta);
     }
- 
-    refresh(): this {
+
+    resize(): this {
         const canv = this.canvas;
         const box = canv.getBoundingClientRect();
         
         canv.width = window.innerWidth - box.left * 2;
         canv.height = window.innerHeight - box.top * 2;
 
-        
-        this.width = canv.width;
-        this.height = canv.height;
-
-        super.refresh();
+        super.resize(canv.width, canv.height);
 
         window["StageWidth"] = canv.width;
-        window["StageHeight"] = canv.width;
-        
-        console.clear();
-        console.log(new Vector2D(this.width,this.height));
-        
+        window["StageHeight"] = canv.height;
+
         return this;
     }
 
-    clear(): void {
-        this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
+    refresh(): this {
+
+        this.resize();
+
+        if (this.debug) {
+            console.clear();
+            console.log(new Vector2D(this.width,this.height));
+        }
+        
+        return super.refresh();
     }
 
-    launch(eventCoRender: boolean = true): void {
+    clear(): this {
+        this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
+        return this;
+    }
+
+    launch(eventCoRender: boolean = true): this {
         if (eventCoRender) 
             this.canvas.addEventListener("mousemove", this.render.bind(this));
-        this.lastTimeStamp = Date.now() - Stage.RENDER_RATE;
-        this.load(Date.now());        
+        this.lastTimeStamp = window.performance.now() - Stage.RENDER_RATE * 2;
+        this.load(this.lastTimeStamp);        
+        return this;
     }
 
-    launchByUpdate(): void {
+    launchByUpdate(): this {
         this.canvas.addEventListener("mousemove", this.tick.bind(this));
+        return this;
     }
 
     load(timestamp: number): void {
@@ -88,7 +93,7 @@ class Stage extends CanvasContainer {
         canvas: undefined,
         fillColor: "black",
         graphics: "rect",
-    }, StageInteractive.DEF_PROP, DATA_CLONE)
+    }, CanvasContainer.DEF_PROP, DATA_CLONE)
 
     static RENDER_RATE = 1000 / 60.0;
 

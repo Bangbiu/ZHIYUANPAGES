@@ -112,6 +112,9 @@ class SObject {
             res = attr.set.bind(attr);
         return res;
     }
+    subset(propNames) {
+        return SObject.subset(this, propNames);
+    }
     printer(attrName, ...argArray) {
         if (attrName) {
             const attr = this.attribution(attrName);
@@ -337,6 +340,15 @@ class SObject {
         if (!res)
             return false;
         return true;
+    }
+    static subset(target, propNames) {
+        const res = {};
+        propNames.forEach(prop => {
+            SObject.tryGet(target, prop, function (value) {
+                res[prop] = value;
+            });
+        });
+        return res;
     }
 }
 SObject.CUM_INDEX = 0;
