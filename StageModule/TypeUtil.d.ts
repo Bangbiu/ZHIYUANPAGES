@@ -73,6 +73,7 @@ declare interface TickEventProperties {
     repeat?: number;
     interval?: number;
     prog?: number;
+    enable?: boolean;
 }
 
 declare interface ContextTransfProperties {

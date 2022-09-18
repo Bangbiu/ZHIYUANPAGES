@@ -212,6 +212,10 @@ class SObject implements Reproducable {
         return SObject.equals(this, other);
     }
 
+    equivalent(other: any): boolean {
+        return false;
+    }
+
     static wrap(target: Object): SObject {
         return (target instanceof SObject) ? target : new SObject(target);
     }

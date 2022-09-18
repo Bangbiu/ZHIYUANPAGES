@@ -1,6 +1,6 @@
 /*jshint esversion: ES2020 */
 import { SObject } from "./DataUtil.js";
-import { clamp } from "./SMath.js";
+import { clamp, warp } from "./SMath.js";
 export const PI = Math.PI;
 export const DPI = PI * 2;
 export const ROUND_OFF = 0.0001;
@@ -77,8 +77,10 @@ class Rotation2D extends SObject {
         return new Rotation2D(this);
     }
     equals(other) {
-        const rad = other instanceof Rotation2D ? other.rad : other;
-        return Math.abs(this.rad - Number(rad)) < ROUND_OFF;
+        return Math.abs(this.rad - other.rad) < ROUND_OFF;
+    }
+    equivalent(other) {
+        return this.equals(new Rotation2D(other));
     }
     static toRad(degree) {
         return PI * degree / 180;
@@ -171,6 +173,17 @@ class Vector2D extends SObject {
         this.y = y;
         return this;
     }
+    warp(xMax, yMax) {
+        if (xMax instanceof Vector2D) {
+            this.x = warp(this.x, xMax.x);
+            this.y = warp(this.y, xMax.y);
+        }
+        else {
+            this.x = warp(this.x, xMax);
+            this.y = warp(this.y, yMax);
+        }
+        return this;
+    }
     set(value) {
         if (value instanceof Vector2D)
             this.copy(value);
@@ -182,6 +195,21 @@ class Vector2D extends SObject {
         let len = this.length();
         this.x = this.x / len;
         this.y = this.y / len;
+        return this;
+    }
+    floor() {
+        this.x = Math.floor(this.x);
+        this.y = Math.floor(this.y);
+        return this;
+    }
+    ceil() {
+        this.x = Math.ceil(this.x);
+        this.y = Math.ceil(this.y);
+        return this;
+    }
+    round() {
+        this.x = Math.round(this.x);
+        this.y = Math.round(this.y);
         return this;
     }
     rotate(theta) {
@@ -222,6 +250,9 @@ class Vector2D extends SObject {
     }
     equals(other) {
         return this.x == other.x && this.y == other.y;
+    }
+    equivalent(other) {
+        return this.equals(new Vector2D(other));
     }
     static interpolate(a, b, u = 0.5) {
         return a.to(b, u).add(a);

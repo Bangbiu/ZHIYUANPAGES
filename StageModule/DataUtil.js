@@ -158,6 +158,9 @@ class SObject {
     equals(other) {
         return SObject.equals(this, other);
     }
+    equivalent(other) {
+        return false;
+    }
     static wrap(target) {
         return (target instanceof SObject) ? target : new SObject(target);
     }

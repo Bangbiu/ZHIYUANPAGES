@@ -1,7 +1,7 @@
 /*jshint esversion: ES2020 */
 
 import { SObject } from "./DataUtil.js";
-import { clamp } from "./SMath.js";
+import { clamp, warp } from "./SMath.js";
 import { 
     Rectizable, 
     Rotationizable, 
@@ -106,9 +106,12 @@ class Rotation2D extends SObject {
         return new Rotation2D(this);
     }
 
-    equals(other: Rotationizable): boolean {
-        const rad = other instanceof Rotation2D ? other.rad : other;
-        return Math.abs(this.rad - Number(rad)) < ROUND_OFF;
+    equals(other: Rotation2D): boolean {
+        return Math.abs(this.rad - other.rad) < ROUND_OFF;
+    }
+
+    equivalent(other: Rotationizable): boolean {
+        return this.equals(new Rotation2D(other));
     }
 
     static toRad(degree: number): number {
@@ -213,6 +216,17 @@ class Vector2D extends SObject {
         this.y = y;
         return this;
     }
+
+    warp(xMax: number | Vector2D, yMax?: number): this {
+        if (xMax instanceof Vector2D) {
+            this.x = warp(this.x, xMax.x);
+            this.y = warp(this.y, xMax.y);
+        } else {
+            this.x = warp(this.x, xMax);
+            this.y = warp(this.y, yMax);
+        }
+        return this;
+    }
     
     set(value: Array<number> | Vector2D): this {
         if (value instanceof Vector2D) 
@@ -226,6 +240,24 @@ class Vector2D extends SObject {
         let len = this.length();
         this.x = this.x / len;
         this.y = this.y / len;
+        return this;
+    }
+
+    floor(): this {
+        this.x = Math.floor(this.x);
+        this.y = Math.floor(this.y);
+        return this;
+    }
+
+    ceil(): this {
+        this.x = Math.ceil(this.x);
+        this.y = Math.ceil(this.y);
+        return this;
+    }
+
+    round(): this {
+        this.x = Math.round(this.x);
+        this.y = Math.round(this.y);
         return this;
     }
 
@@ -275,6 +307,10 @@ class Vector2D extends SObject {
 
     equals(other: Vector2D): boolean {
         return this.x == other.x && this.y == other.y;
+    }
+
+    equivalent(other: Vectorizable): boolean {
+        return this.equals(new Vector2D(other));
     }
 
     static interpolate(a: Vector2D, b: Vector2D, u: number = 0.5): Vector2D {

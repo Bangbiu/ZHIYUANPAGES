@@ -41,7 +41,7 @@ export default class Tetris extends STG.Stage {
         return super.refresh();
     }
     launch() {
-        this.addTickEventListener(this.step.bind(this), {
+        this.ticker = this.addTickEventListener(this.step.bind(this), {
             eventName: "falling",
             interval: 30 / this.speed
         });
@@ -58,6 +58,8 @@ export default class Tetris extends STG.Stage {
         }
         this.falling.pos.y--;
         this.showTetro();
+        //Reset timer
+        this.ticker.prog = 0;
     }
     keyBoardOperate(event) {
         if (!STG.isInObject(OPERATION, event.key))
@@ -145,7 +147,6 @@ export default class Tetris extends STG.Stage {
                 this.board.blocks[x][y].copy(this.board.blocks[x][y - 1].subset(["visible", "fillColor"]));
             }
         }
-        console.log("new");
         return this;
     }
 }

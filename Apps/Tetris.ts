@@ -29,6 +29,7 @@ export default class Tetris extends STG.Stage {
     board: Board = new Board();
     speed: number = 1;
     falling: Tetromino;
+    ticker: Types.TickEvent;
     
     constructor(canvas: HTMLCanvasElement) {
         super({canvas: canvas});
@@ -51,7 +52,7 @@ export default class Tetris extends STG.Stage {
     }
 
     launch(): this {
-        this.addTickEventListener(this.step.bind(this), {
+        this.ticker = this.addTickEventListener(this.step.bind(this), {
             eventName: "falling",
             interval: 30 / this.speed
         })
@@ -70,6 +71,8 @@ export default class Tetris extends STG.Stage {
         }
         this.falling.pos.y--;
         this.showTetro();
+        //Reset timer
+        this.ticker.prog = 0;
     }
 
     keyBoardOperate(event: KeyboardEvent): void {
@@ -117,6 +120,7 @@ export default class Tetris extends STG.Stage {
             this.falling = next;
             this.showTetro();
         }
+
         return this;
         
     }
@@ -168,8 +172,6 @@ export default class Tetris extends STG.Stage {
                 );
             }
         }
-        console.log("new");
-        
         return this;
     }
 

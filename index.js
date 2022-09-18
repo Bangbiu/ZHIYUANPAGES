@@ -1,4 +1,4 @@
-import Tetris from "./Apps/Tetris.js";
+import SnakeGame from "./Apps/Snake.js";
 const canvas = document.getElementById("mainCanvas");
-const main = new Tetris(canvas).launch();
-console.log(main);
+//const main = new Tetris(canvas).launch();
+new SnakeGame(canvas).launch();
