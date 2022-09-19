@@ -3,6 +3,7 @@ import { DATA_CLONE, DATA_IDEN, DATA_UNINIT, SObject, StateMap } from "./DataUti
 import { GraphicsText } from "./Graphics2D.js";
 import { Object2D, StageInteractive, StageObject } from "./Object2D.js";
 import { Color, Rect2D, Vector2D } from "./Struct.js";
+import BUTTONS from './Presets/Buttons.json' assert { type: 'json' };
 export { CanvasDisplayComponent, CanvasInterativeComponent, CanvasLabel, CanvasButton, CanvasContainer };
 /**
  * Display Comp:
@@ -57,6 +58,7 @@ class CanvasLabel extends CanvasDisplayComponent {
     }
     set fontColor(color) {
         this.fillColor = color;
+        this.resolve("fillColor", Color);
     }
 }
 CanvasLabel.DEF_PROP = SObject.insertValues({
@@ -119,27 +121,7 @@ class CanvasButton extends CanvasInterativeComponent {
     }
 }
 //Statics
-CanvasButton.DEF_PROP = SObject.insertValues({
-    fillColor: new Color("#1d89ff"),
-    foreColor: new Color("white"),
-    borderColor: new Color("#1d89ff"),
-    borderWidth: 3,
-    states: new InteractionStates({
-        def: {
-            foreColor: new Color("white"),
-        },
-        hovered: {
-            fillColor: new Color("white"),
-            foreColor: new Color("#1d89ff"),
-            borderColor: new Color("#1d89ff")
-        },
-        pressed: {
-            fillColor: new Color("#DDDDDD"),
-            foreColor: new Color("#1d89ff"),
-            borderColor: new Color("#1d89ff")
-        }
-    })
-}, CanvasInterativeComponent.DEF_PROP, DATA_CLONE);
+CanvasButton.DEF_PROP = SObject.insertValues(BUTTONS.classic, CanvasInterativeComponent.DEF_PROP, DATA_CLONE);
 CanvasButton.CUM_INDEX = 0;
 class CanvasContainer extends CanvasInterativeComponent {
     constructor(parameters = {}, assign = DATA_IDEN) {

@@ -14,7 +14,7 @@ resize();
 //t_COMP.setCanvas(canvas);
 //t_COMP.run_Matrix();
 t_STG.setCanvas(canvas);
-t_STG.run_Table();
+t_STG.run_Stage();
 
 function resize() {
     const box = canvas.getBoundingClientRect();

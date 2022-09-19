@@ -21,6 +21,7 @@ export function run_Stage() {
         debug: true,
         draggable: true
     });
+    btn1.msg();
     /*
     let angle = 0.1;
     stage.addMouseEventListener("wheel", function(e) {
@@ -41,9 +42,7 @@ export function run_Stage() {
     });
     */
     stage.launch(false);
-    stage.addKeyBoardListener("keydown", function (ev) { console.log(); });
     btn1.addMouseEventListener("mousedown", function (ev) { console.log("down"); });
-    btn1.msg("listeners");
 }
 export function run_Table() {
     stage = new Stage({ canvas: canv });
@@ -53,7 +52,6 @@ export function run_Table() {
         graphics: "square",
         borderColor: "grey",
         borderWidth: 5,
-        draggable: true,
         clipWithin: true,
     });
     stage.add(table);
@@ -61,13 +59,12 @@ export function run_Table() {
     //table.innerTransf.trans = table.bound.dimension.clone().negate().scale(0.5);
     const panel = new CanvasContainer({
         scale: [3, 3],
-        frame: [-0.5, -0.5, 1, 2],
-        grid: [10, 40],
+        frame: [-0.5, -0.5, 1, 4],
+        grid: [10, 80],
         graphics: "rect",
         borderColor: "grey",
         borderWidth: 0,
         clipWithin: true,
-        draggable: true,
     });
     table.addMouseEventListener("wheel", function (ev) {
         const changed = panel.pos.y + ev.info.deltaY / 10;
@@ -77,7 +74,7 @@ export function run_Table() {
     });
     table.add(panel);
     for (let x = 0; x < 10; x++) {
-        for (let y = 0; y < 30; y++) {
+        for (let y = 0; y < 80; y++) {
             panel.add(new CanvasButton({
                 fillColor: "white",
                 borderColor: "grey",

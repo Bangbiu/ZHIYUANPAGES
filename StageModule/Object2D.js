@@ -319,8 +319,10 @@ class Object2D extends SObject {
         return this;
     }
     switchTo(key) {
-        if (key != undefined && this.states != undefined && key in this.states)
+        if (key != undefined && this.states != undefined && key in this.states) {
             this.updateValues(this.states.swtichTo(key), DATA_IDEN);
+            this.resolveAll();
+        }
     }
     toggle() {
         if (this.states != undefined) {

@@ -1,3 +1,23 @@
 {
-    
+    "classic": {
+        "fillColor": "#1d89ff",
+        "foreColor": "white",
+        "borderColor": "#1d89ff",
+        "borderWidth": 3,
+        "states": {
+            "def": {
+                "foreColor": "white"
+            },
+            "hovered": {
+                "fillColor": "white",
+                "foreColor": "#1d89ff",
+                "borderColor": "#1d89ff"
+            },
+            "pressed": {
+                "fillColor": "#DDDDDD",
+                "foreColor": "#1d89ff",
+                "borderColor": "#1d89ff"
+            }
+        }
+    }
 }

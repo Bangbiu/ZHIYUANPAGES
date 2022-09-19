@@ -446,8 +446,11 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
     }
 
     switchTo(key: Numerizable) {
-        if (key != undefined && this.states != undefined && key in this.states) 
+        if (key != undefined && this.states != undefined && key in this.states) {
             this.updateValues(this.states.swtichTo(key), DATA_IDEN);
+            this.resolveAll();
+        }
+            
     }
 
     toggle(): this {
