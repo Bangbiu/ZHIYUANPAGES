@@ -274,8 +274,8 @@ class SObject {
     static clone(target) {
         switch (typeof target) {
             case "object": {
-                if (target instanceof SObject)
-                    return target.clone();
+                if ("clone" in target)
+                    return target["clone"]();
                 else if (target instanceof Array) {
                     const res = [];
                     target.forEach(element => {

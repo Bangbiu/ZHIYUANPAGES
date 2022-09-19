@@ -1,7 +1,7 @@
 /*jshint esversion: ES2020 */
 import * as SMath from "./SMath.js";
 import { Vector2D, Rect2D, Rotation2D } from "./Struct.js";
-import { Graphizable, ParsedPath, Polygon, Renderable } from "./TypeUtil";
+import { Graphizable, ParsedPath, Polygon, Renderable, Reproducable } from "./TypeUtil";
 import PATH from './Presets/Paths.json' assert {type: 'json'}
 
 export {
@@ -60,7 +60,7 @@ interface PathPreset {
     readonly [propName: string]: string;
 }
 
-class Graphics2D extends Path2D implements Renderable {
+class Graphics2D extends Path2D implements Renderable, Reproducable {
     bound: Rect2D;
     boundPath: Path2D;
 
@@ -106,6 +106,10 @@ class Graphics2D extends Path2D implements Renderable {
 
     clone(): Graphics2D {
         return new Graphics2D(this);
+    }
+
+    copy(other: Reproducable): this {
+        return this;
     }
 
     scaledPath(scale: Vector2D): Path2D {

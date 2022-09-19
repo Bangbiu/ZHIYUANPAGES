@@ -339,8 +339,8 @@ class SObject implements Reproducable {
     static clone<T>(target: T): T {
         switch (typeof target) {
             case "object": {
-                if (target instanceof SObject) 
-                    return target.clone() as unknown as T;
+                if ("clone" in target) 
+                    return (target["clone"] as Function)() as T;
                 else if (target instanceof Array) {
                     const res = [];
                     target.forEach(element => {

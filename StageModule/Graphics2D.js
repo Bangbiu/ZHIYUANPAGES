@@ -78,6 +78,9 @@ class Graphics2D extends Path2D {
     clone() {
         return new Graphics2D(this);
     }
+    copy(other) {
+        return this;
+    }
     scaledPath(scale) {
         return Graphics2D.getScaledPath(this, scale);
     }
