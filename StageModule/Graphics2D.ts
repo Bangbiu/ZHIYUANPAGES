@@ -61,37 +61,18 @@ interface PathPreset {
 }
 
 class Graphics2D extends Path2D implements Renderable, Reproducable {
+    clipper: Path2D;
     bound: Rect2D;
     boundPath: Path2D;
 
-    constructor(starter?: Graphizable) {
-        if (starter == undefined) {
-            super();
-            this.bound = new Rect2D(0,0,0,0);
-            this.boundPath = new Path2D();
-            return;
-        }
+    constructor(starter?: Graphizable, clipper?: Graphizable) {
+        const [path, bound] = Graphics2D.parseGraphizable(starter);
+        super(path);
+        this.bound = bound;
+        this.boundPath = bound.getRectPath();
 
-        if (starter instanceof Array)   //Polygon
-            starter = Graphics2D.polyToPathString(starter);
-
-        if (typeof starter == "string") {
-            if (PATH[starter] != undefined)
-                starter = PATH[starter];
-            else if (POLY[starter] != undefined) {
-                starter = Graphics2D.polyToPathString(POLY[starter]);
-            }
-                
-            super(starter as string);
-            //console.log(starter);
-            
-            this.bound = Graphics2D.calculateBoundary(Graphics2D.parsePath(starter as string));
-            this.boundPath = this.bound.getRectPath();
-        } else if (starter instanceof Graphics2D) {
-            super(starter);
-            this.bound = starter.bound.clone();
-            this.boundPath = new Path2D(starter.boundPath);
-        }
+        const [clipPath, clipBound] = Graphics2D.parseGraphizable(clipper);
+        this.clipper = clipPath;
     }
 
     addPath(path: Graphics2D): void {
@@ -125,7 +106,14 @@ class Graphics2D extends Path2D implements Renderable, Reproducable {
     render(ctx: CanvasRenderingContext2D, scale: Vector2D = Graphics2D.DEF_SCALE, 
         stroke: boolean = Graphics2D.DEF_STROKE, fill: boolean = Graphics2D.DEF_FILL): void 
     {   
+        ctx.save();
+        
+        if (this.clipper != undefined) {
+            ctx.clip(this.clipper);
+        }
         Graphics2D.drawPath(ctx, this, scale, stroke, fill);
+        
+        ctx.restore();
     }
 
     static drawPath(ctx: CanvasRenderingContext2D, path: Path2D, scale: Vector2D, stroke: boolean, fill: boolean) {
@@ -138,6 +126,34 @@ class Graphics2D extends Path2D implements Renderable, Reproducable {
         const res = new Path2D();
         res.addPath(path, { a: scale.x, d: scale.y });
         return res;
+    }
+
+    static parseGraphizable(graphizable: Graphizable): [Path2D, Rect2D] {
+        if (graphizable == undefined) {
+            return [undefined, new Rect2D(0,0,0,0)];
+        }
+
+        let pathStr: string
+
+        if (graphizable instanceof Array)   //Polygon
+            pathStr = Graphics2D.polyToPathString(graphizable);
+
+        if (typeof graphizable == "string") {
+            if (PATH[graphizable] != undefined)
+                pathStr = PATH[graphizable];
+            else if (POLY[graphizable] != undefined) {
+                pathStr = Graphics2D.polyToPathString(POLY[graphizable]);
+            }
+
+            const bound = Graphics2D.calculateBoundary(
+                Graphics2D.parsePath(pathStr)
+            );
+
+            return [new Path2D(pathStr), bound]
+
+        } else if (graphizable instanceof Graphics2D) {
+            return [graphizable, graphizable.bound.clone()];
+        }
     }
 
     static polyToPathString(pts: Polygon): string {

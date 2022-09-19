@@ -117,8 +117,7 @@ export function run_Matrix() {
     
     let obj2 = obj1.clone();
     //obj2.traverse(function(key,propName){console.log(propName);});
-    obj1.listeners.clone().msg();
-
+    
     obj2.moveTo(200,200);
     
     obj2.updateValues({
@@ -129,7 +128,11 @@ export function run_Matrix() {
         borderWidth: 5,
         scale: "1.5,1.5",
     });
-    
+
+    obj2.graphics = new STG.Graphics2D("square","rocket");
+    obj2.refresh();
+    obj2.msg("states");
+    obj2.captionLabel.pos.msg();
     
     //obj1.msg();
     //obj2.msg();

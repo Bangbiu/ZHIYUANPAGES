@@ -41,31 +41,13 @@ const POLY = {
     heart: [[0, -35], [35, -70], [70, -30], [0, 50], [-70, -30], [-35, -70]]
 };
 class Graphics2D extends Path2D {
-    constructor(starter) {
-        if (starter == undefined) {
-            super();
-            this.bound = new Rect2D(0, 0, 0, 0);
-            this.boundPath = new Path2D();
-            return;
-        }
-        if (starter instanceof Array) //Polygon
-            starter = Graphics2D.polyToPathString(starter);
-        if (typeof starter == "string") {
-            if (PATH[starter] != undefined)
-                starter = PATH[starter];
-            else if (POLY[starter] != undefined) {
-                starter = Graphics2D.polyToPathString(POLY[starter]);
-            }
-            super(starter);
-            //console.log(starter);
-            this.bound = Graphics2D.calculateBoundary(Graphics2D.parsePath(starter));
-            this.boundPath = this.bound.getRectPath();
-        }
-        else if (starter instanceof Graphics2D) {
-            super(starter);
-            this.bound = starter.bound.clone();
-            this.boundPath = new Path2D(starter.boundPath);
-        }
+    constructor(starter, clipper) {
+        const [path, bound] = Graphics2D.parseGraphizable(starter);
+        super(path);
+        this.bound = bound;
+        this.boundPath = bound.getRectPath();
+        const [clipPath, clipBound] = Graphics2D.parseGraphizable(clipper);
+        this.clipper = clipPath;
     }
     addPath(path) {
         super.addPath(path);
@@ -88,7 +70,12 @@ class Graphics2D extends Path2D {
         Graphics2D.drawPath(ctx, this.boundPath, scale, stroke, fill);
     }
     render(ctx, scale = Graphics2D.DEF_SCALE, stroke = Graphics2D.DEF_STROKE, fill = Graphics2D.DEF_FILL) {
+        ctx.save();
+        if (this.clipper != undefined) {
+            ctx.clip(this.clipper);
+        }
         Graphics2D.drawPath(ctx, this, scale, stroke, fill);
+        ctx.restore();
     }
     static drawPath(ctx, path, scale, stroke, fill) {
         const scaledpath = Graphics2D.getScaledPath(path, scale);
@@ -101,6 +88,26 @@ class Graphics2D extends Path2D {
         const res = new Path2D();
         res.addPath(path, { a: scale.x, d: scale.y });
         return res;
+    }
+    static parseGraphizable(graphizable) {
+        if (graphizable == undefined) {
+            return [undefined, new Rect2D(0, 0, 0, 0)];
+        }
+        let pathStr;
+        if (graphizable instanceof Array) //Polygon
+            pathStr = Graphics2D.polyToPathString(graphizable);
+        if (typeof graphizable == "string") {
+            if (PATH[graphizable] != undefined)
+                pathStr = PATH[graphizable];
+            else if (POLY[graphizable] != undefined) {
+                pathStr = Graphics2D.polyToPathString(POLY[graphizable]);
+            }
+            const bound = Graphics2D.calculateBoundary(Graphics2D.parsePath(pathStr));
+            return [new Path2D(pathStr), bound];
+        }
+        else if (graphizable instanceof Graphics2D) {
+            return [graphizable, graphizable.bound.clone()];
+        }
     }
     static polyToPathString(pts) {
         let res = "M ";
