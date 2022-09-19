@@ -66,13 +66,16 @@ class Graphics2D extends Path2D {
     scaledPath(scale) {
         return Graphics2D.getScaledPath(this, scale);
     }
+    scaledClip(scale) {
+        return Graphics2D.getScaledPath(this.clipper, scale);
+    }
     renderBound(ctx, scale = Graphics2D.DEF_SCALE, stroke = Graphics2D.DEF_STROKE, fill = Graphics2D.DEF_FILL) {
         Graphics2D.drawPath(ctx, this.boundPath, scale, stroke, fill);
     }
     render(ctx, scale = Graphics2D.DEF_SCALE, stroke = Graphics2D.DEF_STROKE, fill = Graphics2D.DEF_FILL) {
         ctx.save();
         if (this.clipper != undefined) {
-            ctx.clip(this.clipper);
+            ctx.clip(this.scaledClip(scale));
         }
         Graphics2D.drawPath(ctx, this, scale, stroke, fill);
         ctx.restore();

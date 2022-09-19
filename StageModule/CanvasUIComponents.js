@@ -172,6 +172,11 @@ class CanvasContainer extends CanvasInterativeComponent {
         });
         return this;
     }
+    resolveAll(other = this) {
+        SObject.resolve(other, "grid", Vector2D);
+        super.resolveAll(other);
+        return this;
+    }
 }
 CanvasContainer.LEFT = "left";
 CanvasContainer.RIGHT = "right";

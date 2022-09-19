@@ -284,8 +284,6 @@ class SObject implements Reproducable {
     }
 
     static setValues<T>(target: T, values: Object, assign: DataAssignType = ASN_DEF): T {
-        if (target["class"] == "InteractiveListener") console.log(target["draggable"]);
-        
         for (const key in values) {
             SObject.assign(target,key,values[key],assign);
         }

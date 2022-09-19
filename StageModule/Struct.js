@@ -325,7 +325,7 @@ class Rect2D extends Vector2D {
     get pos() {
         return new Vector2D(this);
     }
-    get size() {
+    get dimension() {
         return new Vector2D(this.width, this.height);
     }
     getPivot(horiz = 0, verti = 0) {

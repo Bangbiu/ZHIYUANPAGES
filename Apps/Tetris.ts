@@ -45,7 +45,7 @@ export default class Tetris extends STG.Stage {
         const blockSize = Math.floor(this.height / Tetris.SIZE.y);
         const boardSize = Tetris.SIZE.clone().scale(blockSize);
 
-        this.board.pos.copy(this.bound.size).sub(boardSize).scale(0.5);
+        this.board.pos.copy(this.bound.dimension).sub(boardSize).scale(0.5);
         this.board.resize(boardSize);
 
         return super.refresh();

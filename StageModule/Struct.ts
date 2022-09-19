@@ -401,7 +401,7 @@ class Rect2D extends Vector2D {
         return new Vector2D(this);
     }
 
-    get size(): Vector2D{
+    get dimension(): Vector2D{
         return new Vector2D(this.width, this.height);
     }
 

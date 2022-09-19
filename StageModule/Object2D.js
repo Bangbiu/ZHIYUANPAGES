@@ -336,6 +336,9 @@ class Object2D extends SObject {
         ctx.save();
         this.transform(ctx);
         res = ctx.isPointInPath(this.graphics.scaledPath(this.scale), x, y);
+        if (this.graphics.clipper != undefined) {
+            res = res && ctx.isPointInPath(this.graphics.scaledClip(this.scale), x, y);
+        }
         ctx.restore();
         return res;
     }
@@ -453,7 +456,6 @@ class StageObject extends Object2D {
     constructor(parameters = {}, assign = DATA_IDEN) {
         super({}, DATA_UNINIT);
         this.components = [];
-        this.mainBody = true;
         this.initialize(parameters, StageObject.DEF_PROP, assign);
     }
     set pivot(value) {
@@ -508,7 +510,12 @@ class StageObject extends Object2D {
             super.render(ctx);
         //Render Components
         ctx.save();
-        this.toInternal(ctx);
+        //Clip Within
+        this.transform(ctx);
+        if (this.clipWithin) {
+            ctx.clip(this.graphics.scaledPath(this.scale));
+        }
+        this.innerTransf.transform(ctx);
         this.components.forEach(comp => {
             comp.render(ctx);
         });
@@ -536,6 +543,7 @@ class StageObject extends Object2D {
 }
 StageObject.DEF_PROP = SObject.insertValues({
     mainBody: true,
+    clipWithin: false,
     innerTransf: new ContextTransf(),
     states: undefined
 }, Object2D.DEF_PROP, DATA_CLONE);
@@ -564,6 +572,7 @@ class StageInteractive extends StageObject {
         return new StageInteractive(this, DATA_CLONE);
     }
     resolveAll(other = this) {
+        SObject.resolve(other, "states", StateMap);
         super.resolveAll(other);
         return this;
     }

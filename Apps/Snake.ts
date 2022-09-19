@@ -36,7 +36,7 @@ export default class SnakeGame extends STG.Stage {
         const blockSize = Math.floor(this.height / SnakeGame.SIZE.y);
         const boardSize = SnakeGame.SIZE.clone().scale(blockSize);
 
-        this.board.pos.copy(this.bound.size).sub(boardSize).scale(0.5);
+        this.board.pos.copy(this.bound.dimension).sub(boardSize).scale(0.5);
         this.board.resize(boardSize);
 
         return super.refresh();

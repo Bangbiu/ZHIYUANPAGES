@@ -97,6 +97,10 @@ class Graphics2D extends Path2D implements Renderable, Reproducable {
         return Graphics2D.getScaledPath(this, scale);
     }
 
+    scaledClip(scale: Vector2D): Path2D {
+        return Graphics2D.getScaledPath(this.clipper, scale);
+    }
+
     renderBound(ctx: CanvasRenderingContext2D, scale: Vector2D = Graphics2D.DEF_SCALE, 
         stroke: boolean = Graphics2D.DEF_STROKE, fill: boolean=Graphics2D.DEF_FILL): void 
     {
@@ -109,7 +113,7 @@ class Graphics2D extends Path2D implements Renderable, Reproducable {
         ctx.save();
         
         if (this.clipper != undefined) {
-            ctx.clip(this.clipper);
+            ctx.clip(this.scaledClip(scale));
         }
         Graphics2D.drawPath(ctx, this, scale, stroke, fill);
         

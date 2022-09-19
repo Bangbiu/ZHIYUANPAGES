@@ -126,7 +126,7 @@ declare interface Object2DSubProperties {
     transf?: Transfizable;
 
     listeners?: TickListeners;
-    states?: StateMap<Object2DProperties>;
+    states?: Object;
 
     debug?: boolean;
 
@@ -137,9 +137,10 @@ declare type Object2DProperties = RenderableProperties & Object2DSubProperties;
 
 declare interface StageObjectSubProperties {
     mainBody?: boolean;
+    clipWithin?: boolean;
     innerTransf?: ContextTransf | string;
     listeners?: TickListeners;
-    states?: StateMap<StageObjectProperties>;
+    states?: Object;
 }
 
 declare type StageObjectProperties = Object2DProperties & StageObjectSubProperties;
@@ -147,7 +148,7 @@ declare type StageObjectProperties = Object2DProperties & StageObjectSubProperti
 declare interface StageInteractiveSubProperties {
     draggable?: boolean;
     listeners?: InteractiveListeners;
-    states?: StateMap<StageInteractiveProperties>
+    states?: Object
 }
 
 declare type StageInteractiveProperties = StageObjectProperties & StageInteractiveSubProperties;

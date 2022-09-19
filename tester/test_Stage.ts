@@ -1,26 +1,33 @@
 /*jshint esversion: ES2020 */
 // @ts-check
 import { CanvasButton, CanvasContainer } from "../StageModule/CanvasUIComponents.js";
+import { DATA_CLONE } from "../StageModule/DataUtil.js";
+import { Graphics2D, PATH, PATHCMD, POLY } from "../StageModule/Graphics2D.js";
 import { Stage } from "../StageModule/Stage.js";
-import { Color } from "../StageModule/Struct.js";
-let ctx;
-let canv;
-let stage;
-export function setCanvas(canvas) {
+import { Color, Vector2D } from "../StageModule/Struct.js";
+
+let ctx: CanvasRenderingContext2D;
+let canv: HTMLCanvasElement;
+let stage: Stage;
+
+export function setCanvas(canvas: HTMLCanvasElement) {
     canv = canvas;
     ctx = canvas.getContext("2d");
 }
+
 export function run_Stage() {
     stage = new Stage({ canvas: canv });
+
     let btn1 = new CanvasButton({
         fontSize: 2,
-        scale: [3, 3],
+        scale: [3,3],
         frame: [0.5, 0.5],
         caption: "Button",
         graphics: "roundSquare",
         debug: true,
         draggable: true
     });
+
     /*
     let angle = 0.1;
     stage.addMouseEventListener("wheel", function(e) {
@@ -32,7 +39,9 @@ export function run_Stage() {
         btn1.refresh();
     });
     */
+
     stage.add(btn1);
+    
     /*
     console.log(Graphics2D.CMD_SEPARATOR);
     "M0 -50 A 50,50,0,1,0,1,0".split(Graphics2D.CMD_SEPARATOR).forEach(cmd => {
@@ -40,15 +49,20 @@ export function run_Stage() {
         console.log(cmd.split(Graphics2D.PARAM_SEPARATOR));
     });
     */
+       
     stage.launch(false);
-    stage.addKeyBoardListener("keydown", function (ev) { console.log(); });
-    btn1.addMouseEventListener("mousedown", function (ev) { console.log("down"); });
+
+    stage.addKeyBoardListener("keydown", function(ev) {console.log();})
+    btn1.addMouseEventListener("mousedown", function(ev) {console.log("down");})
     btn1.msg("listeners");
 }
+
+
 export function run_Table() {
     stage = new Stage({ canvas: canv });
+
     let table = new CanvasContainer({
-        scale: [3, 3],
+        scale: [3,3],
         frame: [0.5, 0.5, 0.5, 0.8],
         graphics: "square",
         borderColor: "grey",
@@ -56,29 +70,35 @@ export function run_Table() {
         draggable: true,
         clipWithin: true,
     });
+
     stage.add(table);
     stage.refresh();
+
     //table.innerTransf.trans = table.bound.dimension.clone().negate().scale(0.5);
-    const panel = new CanvasContainer({
-        scale: [3, 3],
+
+    const panel =  new CanvasContainer({
+        scale: [3,3],
         frame: [-0.5, -0.5, 1, 2],
-        grid: [10, 40],
+        grid: [10,40],
         graphics: "rect",
         borderColor: "grey",
         borderWidth: 0,
         clipWithin: true,
     });
-    table.addMouseEventListener("wheel", function (ev) {
-        panel.pos.y += ev.info.deltaY / 10;
+
+    table.addMouseEventListener("wheel", function(ev) {
+        panel.pos.y += (ev.info as WheelEvent).deltaY / 10;
     });
+
     table.add(panel);
+    
     for (let x = 0; x < 10; x++) {
         for (let y = 0; y < 30; y++) {
             panel.add(new CanvasButton({
                 fillColor: "white",
                 borderColor: "grey",
                 graphics: "rect",
-                frame: [x + 0.02, y + 0.05, 0.96, 0.9],
+                frame: [x+0.02,y+0.05,0.96,0.9],
                 caption: x + "," + y,
                 states: {
                     def: {
@@ -98,6 +118,9 @@ export function run_Table() {
             }));
         }
     }
+    
+
     stage.refresh();
     stage.launch(false);
+    
 }

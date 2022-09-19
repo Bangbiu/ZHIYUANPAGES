@@ -72,7 +72,7 @@ export function run_CanvasButton() {
     });
     render();
 }
-export function run_Matrix() {
+export function run_Clipper() {
     STG.CanvasButton.ObjectList = renderList;
     STG.StageInteractive.CanvasDOM = canv;
     let obj1 = new STG.CanvasButton({

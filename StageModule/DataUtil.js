@@ -224,8 +224,6 @@ class SObject {
         return target;
     }
     static setValues(target, values, assign = ASN_DEF) {
-        if (target["class"] == "InteractiveListener")
-            console.log(target["draggable"]);
         for (const key in values) {
             SObject.assign(target, key, values[key], assign);
         }

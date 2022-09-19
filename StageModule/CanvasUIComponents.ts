@@ -231,6 +231,13 @@ class CanvasContainer extends CanvasInterativeComponent {
         return this;
     }
 
+    resolveAll(other: CanvasContainer = this): this {
+
+        SObject.resolve(other, "grid", Vector2D);
+        super.resolveAll(other);
+        return this;
+    }
+
     static LEFT = "left";
     static RIGHT = "right";
     static TOP = "top";

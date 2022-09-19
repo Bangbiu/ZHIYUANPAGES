@@ -105,7 +105,7 @@ export function run_CanvasButton() {
     
 }
 
-export function run_Matrix() {
+export function run_Clipper() {
     STG.CanvasButton.ObjectList = (renderList as STG.CanvasButton[]);
     STG.StageInteractive.CanvasDOM = canv;
 
@@ -117,7 +117,7 @@ export function run_Matrix() {
     
     let obj2 = obj1.clone();
     //obj2.traverse(function(key,propName){console.log(propName);});
-    
+
     obj2.moveTo(200,200);
     
     obj2.updateValues({
