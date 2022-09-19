@@ -102,7 +102,7 @@ class CanvasButton extends CanvasInterativeComponent {
     constructor( parameters: CanvasButtonProperties = {} , assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);
         this.captionLabel = new CanvasLabel({text: "Button"});
-        this.initialize(parameters,CanvasButton.DEF_PROP,assign);
+        this.initialize(parameters, CanvasButton.DEF_PROP, assign);
     }
 
     clone(): CanvasButton {

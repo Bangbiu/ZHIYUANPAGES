@@ -284,6 +284,8 @@ class SObject implements Reproducable {
     }
 
     static setValues<T>(target: T, values: Object, assign: DataAssignType = ASN_DEF): T {
+        if (target["class"] == "InteractiveListener") console.log(target["draggable"]);
+        
         for (const key in values) {
             SObject.assign(target,key,values[key],assign);
         }
@@ -291,9 +293,9 @@ class SObject implements Reproducable {
     }
 
     static updateValues<T>(target: T, values: Object, assign: DataAssignType = ASN_DEF): T {
-        for (const key in values) {
+        for (const key in values) {  
             if (key in target) {
-                SObject.assign(target,key,values[key],assign);
+                SObject.assign(target, key, values[key], assign);
             } else {
                 SObject.trySet(target, key, values[key], assign);
             }
@@ -541,7 +543,6 @@ class ListenerList<T extends Function> extends SObject implements ArrayLike<T> {
         return this.len;
     }
 
-
     push(elem: T): this {
         this[this.len] = elem;
         this.len++;
@@ -556,7 +557,7 @@ class ListenerList<T extends Function> extends SObject implements ArrayLike<T> {
     }
 
     clone(): ListenerList<T> {
-        return new ListenerList<T>().copy(this);
+        return new ListenerList<T>(this);
     }
 
     copy(other: ListenerList<T>): this {
@@ -614,7 +615,7 @@ class ListenerMap extends SObject {
     }
 
     copy(other: ListenerMap): this {
-        SObject.updateValues(this, other, DATA_CLONE);
+        this.setValues(other, DATA_CLONE);
         return this;
     }
 

@@ -80,6 +80,8 @@ export function run_Matrix() {
     });
     obj1.draggable = true;
     let obj2 = obj1.clone();
+    //obj2.traverse(function(key,propName){console.log(propName);});
+    obj1.listeners.clone().msg();
     obj2.moveTo(200, 200);
     obj2.updateValues({
         pos: "200,200",
@@ -88,13 +90,12 @@ export function run_Matrix() {
         borderColor: "black",
         borderWidth: 5,
         scale: "1.5,1.5",
-        debug: true
     });
-    obj1.msg();
-    obj2.msg();
-    renderList.forEach(element => {
+    //obj1.msg();
+    //obj2.msg();
+    /* renderList.forEach(element => {
         element["msg"]("name");
-    });
+    }); */
     render();
 }
 function render() {

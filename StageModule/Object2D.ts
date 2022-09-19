@@ -166,17 +166,11 @@ class TickListeners extends ListenerMap {
 
     constructor(map?: TickListeners) {
         super();
-        if (map != undefined)
-            this.copy(map);
+        if (map != undefined) this.copy(map);
     }
 
     clone(): TickListeners {
         return new TickListeners(this);
-    }
-
-    copy(other: TickListeners): this {
-        this.ontick = other.ontick.clone();
-        return this;
     }
 
     addEventListener(eventType: TickEventType, callback: TickEvent) {
@@ -210,6 +204,11 @@ class InteractiveListeners extends TickListeners {
     keydown: ListenerList<KBCallBack> = new ListenerList();
     keypress: ListenerList<KBCallBack> = new ListenerList();
     keyup: ListenerList<KBCallBack> = new ListenerList();
+
+    constructor(map?: InteractiveListeners) {
+        super();
+        if (map != undefined) this.copy(map);
+    }
 
     clone(): InteractiveListeners {
         return new InteractiveListeners(this);
@@ -302,11 +301,11 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
     {
         //Prevent init
         if (assign == DATA_UNINIT) return this;
+
         Object2D.ObjectList?.push(this);
         if (this.class != "Object2D") {
             this.constructor["ObjectList"]?.push(this);
         }
-
         super.initialize(parameters, def, assign);
 
         this.ID = this.constructor["CUM_INDEX"];
@@ -731,6 +730,14 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
         return "draggable" in this.listeners;
     }
 
+    set draggable(value: boolean) {
+        if (value) {
+            this.listeners.addBehavior(InteractiveListeners.BEHAVIOR_DRAGGABLE);
+        } else {
+            this.listeners.removeBehavior("draggable");
+        }
+    }
+
     clone(): StageInteractive {
         return new StageInteractive(this, DATA_CLONE);
     }
@@ -738,14 +745,6 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
     resolveAll(other: StageInteractiveProperties = this): this {
         super.resolveAll(other);
         return this;
-    }
-
-    set draggable(value: boolean) {
-        if (value) 
-            this.listeners.addBehavior(InteractiveListeners.BEHAVIOR_DRAGGABLE);
-        else {
-            this.listeners.removeBehavior("draggable");
-        }
     }
 
     bindKeyboardEvents(): this {

@@ -107,10 +107,6 @@ class TickListeners extends ListenerMap {
     clone() {
         return new TickListeners(this);
     }
-    copy(other) {
-        this.ontick = other.ontick.clone();
-        return this;
-    }
     addEventListener(eventType, callback) {
         this.ontick.push(callback);
     }
@@ -128,8 +124,8 @@ class TickListeners extends ListenerMap {
     }
 }
 class InteractiveListeners extends TickListeners {
-    constructor() {
-        super(...arguments);
+    constructor(map) {
+        super();
         this.mousedown = new ListenerList();
         this.mouseup = new ListenerList();
         this.mousemove = new ListenerList();
@@ -139,6 +135,8 @@ class InteractiveListeners extends TickListeners {
         this.keydown = new ListenerList();
         this.keypress = new ListenerList();
         this.keyup = new ListenerList();
+        if (map != undefined)
+            this.copy(map);
     }
     clone() {
         return new InteractiveListeners(this);
@@ -554,19 +552,20 @@ class StageInteractive extends StageObject {
     get draggable() {
         return "draggable" in this.listeners;
     }
+    set draggable(value) {
+        if (value) {
+            this.listeners.addBehavior(InteractiveListeners.BEHAVIOR_DRAGGABLE);
+        }
+        else {
+            this.listeners.removeBehavior("draggable");
+        }
+    }
     clone() {
         return new StageInteractive(this, DATA_CLONE);
     }
     resolveAll(other = this) {
         super.resolveAll(other);
         return this;
-    }
-    set draggable(value) {
-        if (value)
-            this.listeners.addBehavior(InteractiveListeners.BEHAVIOR_DRAGGABLE);
-        else {
-            this.listeners.removeBehavior("draggable");
-        }
     }
     bindKeyboardEvents() {
         window.addEventListener(EVENTYPE.KEYDOWN, this.updateKeyBoardInfo.bind(this));
