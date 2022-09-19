@@ -67,9 +67,13 @@ export function run_Table() {
         borderColor: "grey",
         borderWidth: 0,
         clipWithin: true,
+        draggable: true,
     });
     table.addMouseEventListener("wheel", function (ev) {
-        panel.pos.y += ev.info.deltaY / 10;
+        const changed = panel.pos.y + ev.info.deltaY / 10;
+        if (changed <= table.bound.top && (changed + panel.height) >= table.bound.height) {
+            panel.pos.y = changed;
+        }
     });
     table.add(panel);
     for (let x = 0; x < 10; x++) {
