@@ -101,9 +101,13 @@ class CanvasButton extends CanvasInterativeComponent {
     captionLabel: CanvasLabel;
     declare states: InteractionStates<CanvasButtonProperties>
 
-    constructor( parameters: CanvasButtonProperties = {} , assign: DataAssignType = DATA_IDEN) {
+    constructor( parameters: CanvasButtonProperties | keyof typeof BUTTONS = {} , assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);
         this.captionLabel = new CanvasLabel({text: "Button"});
+        if (typeof parameters == "string") {
+            parameters = BUTTONS[parameters] as Object;
+        } 
+        parameters = parameters ?? {};
         this.initialize(parameters, CanvasButton.DEF_PROP, assign);
     }
 
@@ -195,22 +199,16 @@ class CanvasContainer extends CanvasInterativeComponent {
         return this;
     }
 
-    refresh(): this {
+    resizeChildren(event?: UIEvent) {
         this.components.forEach(comp => {
-            if (comp.frame instanceof Rect2D) {
-                if (comp.frame.x != undefined)
-                    comp.pos.x = this.width * comp.frame.x / this.grid.x;
-                if (comp.frame.y != undefined)
-                    comp.pos.y = this.height * comp.frame.y / this.grid.y;
-                if (comp.frame.width != undefined)
-                    comp.width = this.width * comp.frame.width / this.grid.x;
-                if (comp.frame.height != undefined)
-                    comp.height = this.height * comp.frame.height / this.grid.y;
-            }
-            if (comp instanceof StageObject) {
-                comp.refresh();
-            }
+            comp.resize(this.dimension.divide(this.grid), event);
         });
+        return this;
+    }
+
+    refresh(): this {
+        super.refresh();
+        this.resize(this.dimension);
         return this;
     }
 

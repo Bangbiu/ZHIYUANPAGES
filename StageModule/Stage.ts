@@ -18,7 +18,7 @@ class Stage extends CanvasContainer {
     constructor( parameters: StageProperties, assign: DataAssignType = DATA_IDEN) {
         super({}, DATA_UNINIT);
         this.initialize(parameters, Stage.DEF_PROP, assign);
-        window.addEventListener("resize", this.refresh.bind(this));
+        window.addEventListener("resize", this.resize.bind(this));
         this.context = this.canvas.getContext("2d");
         this.bindMouseEvents(this.canvas);
         this.bindKeyboardEvents();
@@ -33,31 +33,25 @@ class Stage extends CanvasContainer {
         super.tick(this.context, delta);
     }
 
-    resize(): this {
+    resize(event?: any): this {
         const canv = this.canvas;
         const box = canv.getBoundingClientRect();
         
         canv.width = window.innerWidth - box.left * 2;
         canv.height = window.innerHeight - box.top * 2;
 
-        super.resize(canv.width, canv.height);
+        this.width = canv.width;
+        this.height = canv.height;
 
         window["StageWidth"] = canv.width;
         window["StageHeight"] = canv.height;
 
-        return this;
-    }
-
-    refresh(): this {
-
-        this.resize();
-
         if (this.debug) {
             console.clear();
-            console.log(new Vector2D(this.width,this.height));
+            console.log(new Vector2D(canv.width, canv.height));
         }
-        
-        return super.refresh();
+
+        return super.resize(new Vector2D(canv.width, canv.height), event);
     }
 
     clear(): this {
@@ -65,16 +59,18 @@ class Stage extends CanvasContainer {
         return this;
     }
 
-    launch(eventCoRender: boolean = true): this {
-        if (eventCoRender) 
-            this.canvas.addEventListener("mousemove", this.render.bind(this));
+    launch(): this {
         this.lastTimeStamp = window.performance.now() - Stage.RENDER_RATE * 2;
         this.load(this.lastTimeStamp);        
         return this;
     }
 
-    launchByUpdate(): this {
+    launchByMouse(): this {
         this.canvas.addEventListener("mousemove", this.tick.bind(this));
+        this.canvas.addEventListener("mousedown", this.tick.bind(this));
+        this.canvas.addEventListener("mouseup", this.tick.bind(this));
+        this.canvas.addEventListener("wheel", this.tick.bind(this));
+        this.canvas.addEventListener("resize", this.tick.bind(this));
         return this;
     }
 

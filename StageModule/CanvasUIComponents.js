@@ -1,8 +1,8 @@
 /*jshint esversion: ES2020 */
 import { DATA_CLONE, DATA_IDEN, DATA_UNINIT, SObject, StateMap } from "./DataUtil.js";
 import { GraphicsText } from "./Graphics2D.js";
-import { Object2D, StageInteractive, StageObject } from "./Object2D.js";
-import { Color, Rect2D, Vector2D } from "./Struct.js";
+import { Object2D, StageInteractive } from "./Object2D.js";
+import { Color, Vector2D } from "./Struct.js";
 import BUTTONS from './Presets/Buttons.json' assert { type: 'json' };
 export { CanvasDisplayComponent, CanvasInterativeComponent, CanvasLabel, CanvasButton, CanvasContainer };
 /**
@@ -70,6 +70,10 @@ class CanvasButton extends CanvasInterativeComponent {
     constructor(parameters = {}, assign = DATA_IDEN) {
         super({}, DATA_UNINIT);
         this.captionLabel = new CanvasLabel({ text: "Button" });
+        if (typeof parameters == "string") {
+            parameters = BUTTONS[parameters];
+        }
+        parameters = parameters ?? {};
         this.initialize(parameters, CanvasButton.DEF_PROP, assign);
     }
     clone() {
@@ -136,22 +140,15 @@ class CanvasContainer extends CanvasInterativeComponent {
         this.refresh();
         return this;
     }
-    refresh() {
+    resizeChildren(event) {
         this.components.forEach(comp => {
-            if (comp.frame instanceof Rect2D) {
-                if (comp.frame.x != undefined)
-                    comp.pos.x = this.width * comp.frame.x / this.grid.x;
-                if (comp.frame.y != undefined)
-                    comp.pos.y = this.height * comp.frame.y / this.grid.y;
-                if (comp.frame.width != undefined)
-                    comp.width = this.width * comp.frame.width / this.grid.x;
-                if (comp.frame.height != undefined)
-                    comp.height = this.height * comp.frame.height / this.grid.y;
-            }
-            if (comp instanceof StageObject) {
-                comp.refresh();
-            }
+            comp.resize(this.dimension.divide(this.grid), event);
         });
+        return this;
+    }
+    refresh() {
+        super.refresh();
+        this.resize(this.dimension);
         return this;
     }
     resolveAll(other = this) {

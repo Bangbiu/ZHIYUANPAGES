@@ -1,6 +1,6 @@
 import { Graphics2D } from "../StageModule/Graphics2D.js";
 import { Color, Vector2D } from "../StageModule/Struct.js";
-import { ContextTransf, Object2D, StageInteractive, StageObject, TickListeners } from "../StageModule/Object2D.js";
+import { ContextTransf, Object2D, StageInteractive, StageObject } from "../StageModule/Object2D.js";
 const renderList = [];
 let ctx;
 let canv;
@@ -21,7 +21,6 @@ export function run_ContextTransf() {
     //ctxtf.traverse(function(k,v){console.log(v);});
 }
 export function run_Object2D() {
-    console.log(new TickListeners());
     let obj1 = new Object2D({
         pos: [100, 100],
         fillColor: "black",

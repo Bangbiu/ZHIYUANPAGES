@@ -28,7 +28,8 @@ export default class SnakeGame extends STG.Stage {
         const blockSize = Math.floor(this.height / SnakeGame.SIZE.y);
         const boardSize = SnakeGame.SIZE.clone().scale(blockSize);
         this.board.pos.copy(this.bound.dimension).sub(boardSize).scale(0.5);
-        this.board.resize(boardSize);
+        this.board.width = boardSize.x;
+        this.board.height = boardSize.y;
         return super.refresh();
     }
     launch() {
@@ -38,7 +39,7 @@ export default class SnakeGame extends STG.Stage {
         });
         this.showSnake();
         this.genScoreBlock();
-        super.launch(false);
+        super.launch();
         return this;
     }
     keyBoardOperate(event) {
@@ -96,7 +97,7 @@ export default class SnakeGame extends STG.Stage {
         this.showScoreBlock();
     }
     gameOver() {
-        this.listeners.ontick.clear();
+        this.listeners.tick.clear();
         this.board.updateAll({ fillColor: "red" });
         return this;
     }

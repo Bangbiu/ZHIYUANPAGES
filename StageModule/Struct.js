@@ -129,6 +129,22 @@ class Vector2D extends SObject {
         this.y = this.y * coefY;
         return this;
     }
+    divide(coef) {
+        if (coef instanceof Vector2D) {
+            this.x = this.x / coef.x;
+            this.y = this.y / coef.y;
+        }
+        else {
+            this.x = this.x / coef;
+            this.y = this.y / coef;
+        }
+        return this;
+    }
+    divideXY(coefX, coefY) {
+        this.x = this.x / coefX;
+        this.y = this.y / coefY;
+        return this;
+    }
     negate() {
         return this.scale(-1);
     }

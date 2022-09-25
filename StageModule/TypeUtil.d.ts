@@ -2,15 +2,15 @@
 import { SObject , Attribution, StateMap} from "./DataUtil";
 import { Vector2D, Color, Rect2D, Rotation2D,  } from "./Struct";
 import { Graphics2D, PATHCMD } from "./Graphics2D";
-import { Object2D, StageInteractive, ContextTransf, ContextMouseEvent, TickListeners, InteractiveListeners} from "./Object2D";
+import { Object2D, StageInteractive, ContextTransf, ContextMouseEvent, PassiveListeners, InteractiveListeners, StageObject} from "./Object2D";
+import COLORS from './Presets/Colors.json' assert {type: 'json'}
 
 // Types
-declare type TickEventType = "ontick";
+declare type PassiveEventType = "tick" | "resize";
 declare type MouseEventType =  "mousedown"|"mouseup"|"mousemove"|"mouseenter"|"mouseleave"|"wheel";
 declare type KeyBoardEventType = "keydown"|"keypress"|"keyup";
 
-declare type Object2DEventType = TickEventType;
-declare type StageIntEventType = Object2DEventType | MouseEventType | KeyBoardEventType;
+declare type StageIntEventType = PassiveEventType | MouseEventType | KeyBoardEventType;
 
 declare type InteractiveState = "idle"|"hover"|"pressed";
 declare type JSDataType = "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
@@ -28,6 +28,8 @@ declare type AccessAttemptCallBack = (attr: Attribution) => any;
 declare type Getter = () => any;
 declare type Setter = (v) => boolean;
 
+declare type ColorText = keyof typeof COLORS;
+
 declare type DataAssignType = "identical"|"clone"|"uninit";
 
 declare type Rotationizable = Rotation2D | number | string;
@@ -38,13 +40,13 @@ declare type Graphizable = string | Graphics2D | Polygon;
 declare type Numerizable = number | string;
 declare type Transfizable = string | ContextTransfProperties | ContextTransf | Object2D;
 
+declare type ResizeCallBack = (this: Object2D, parent: Vector2D, ev: UIEvent) => any;
+
 declare type TickEvent = TickCallBack & TickEventProperties;
 declare type TickCallBack = (this: Object2D, ev: TickEvent) => any;
 
 declare type MouseEventInfo = MouseEvent | WheelEvent;
 declare type MouseCallBack = (this: StageInteractive, ev: ContextMouseEvent) => any;
-
-declare type AllListenerEvent = TickCallBack & MouseCallBack & KBCallBack;
 
 declare type KBCallBack = (this: StageInteractive, ev: KeyboardEvent) => any;
 
@@ -125,7 +127,7 @@ declare interface Object2DSubProperties {
     rot?: Rotationizable;
     transf?: Transfizable;
 
-    listeners?: TickListeners;
+    listeners?: PassiveListeners;
     states?: Object;
 
     debug?: boolean;
@@ -139,7 +141,7 @@ declare interface StageObjectSubProperties {
     mainBody?: boolean;
     clipWithin?: boolean;
     innerTransf?: ContextTransf | string;
-    listeners?: TickListeners;
+    listeners?: PassiveListeners;
     states?: Object;
 }
 

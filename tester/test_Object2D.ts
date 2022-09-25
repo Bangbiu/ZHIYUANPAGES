@@ -1,7 +1,7 @@
 import { Graphics2D } from "../StageModule/Graphics2D.js";
 import { Color, Vector2D } from "../StageModule/Struct.js";
 import { Animation } from "../StageModule/Animation.js";
-import { ContextTransf, Object2D, StageInteractive, StageObject, TickListeners } from "../StageModule/Object2D.js";
+import { ContextTransf, Object2D, StageInteractive, StageObject, PassiveListeners } from "../StageModule/Object2D.js";
 import { Renderable } from "../StageModule/TypeUtil.js";
 
 const renderList: Renderable[] = [];
@@ -35,8 +35,7 @@ export function run_ContextTransf() {
 
 
 export function run_Object2D() {
-    
-    console.log(new TickListeners());
+
 
     let obj1 = new Object2D({
         pos: [100,100], 

@@ -18,15 +18,14 @@ export function setCanvas(canvas: HTMLCanvasElement) {
 export function run_Stage() {
     stage = new Stage({ canvas: canv });
 
-    let btn1 = new CanvasButton({
+    const btn1 = new CanvasButton({
         fontSize: 2,
-        scale: [3,3],
-        frame: [0.5, 0.5],
-        caption: "Button",
-        graphics: "roundSquare",
-        debug: true,
+        scale: [2,2],
+        frame: [0.2, 0.5],
         draggable: true
     });
+
+    const btn2 = new CanvasButton("classic").copy({pos: [200,200]});
 
     btn1.msg();
     /*
@@ -42,6 +41,7 @@ export function run_Stage() {
     */
 
     stage.add(btn1);
+    stage.add(btn2);
     
     /*
     console.log(Graphics2D.CMD_SEPARATOR);
@@ -51,7 +51,7 @@ export function run_Stage() {
     });
     */
        
-    stage.launch(false);
+    stage.launch();
 
     btn1.addMouseEventListener("mousedown", function(ev) {console.log("down");})
 }
@@ -77,11 +77,10 @@ export function run_Table() {
     const panel =  new CanvasContainer({
         scale: [3,3],
         frame: [-0.5, -0.5, 1, 4],
-        grid: [10,80],
+        grid: [5,40],
         graphics: "rect",
         borderColor: "grey",
         borderWidth: 0,
-        clipWithin: true,
     });
 
     table.addMouseEventListener("wheel", function(ev) {
@@ -93,8 +92,8 @@ export function run_Table() {
 
     table.add(panel);
     
-    for (let x = 0; x < 10; x++) {
-        for (let y = 0; y < 80; y++) {
+    for (let x = 0; x < 5; x++) {
+        for (let y = 0; y < 40; y++) {
             panel.add(new CanvasButton({
                 fillColor: "white",
                 borderColor: "grey",
@@ -122,6 +121,6 @@ export function run_Table() {
     
 
     stage.refresh();
-    stage.launch(false);
+    stage.launch();
     
 }

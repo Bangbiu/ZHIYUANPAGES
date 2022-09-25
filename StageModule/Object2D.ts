@@ -32,16 +32,17 @@ import {
     Polymorphistic,
     KBCallBack,
     StageIntEventType,
-    TickEventType,
+    PassiveEventType,
     MouseEventType,
     KeyBoardEventType,
-    RenderableProperties
+    RenderableProperties,
+    ResizeCallBack
 } from "./TypeUtil.js";
 
 export {
     ContextTransf,
     ContextMouseEvent,
-    TickListeners,
+    PassiveListeners,
     InteractiveListeners,
 
     Object2D,
@@ -51,7 +52,8 @@ export {
 }
 
 enum EVENTYPE {
-    ONTICK = "ontick",
+    TICK = "tick",
+    RESIZE = "resize",
     
     MOUSEMOVE = "mousemove",
     MOUSEENTER = "mouseenter",
@@ -161,38 +163,41 @@ class ContextMouseEvent {
     }
 }
 
-class TickListeners extends ListenerMap {
-    ontick: ListenerList<TickEvent> = new ListenerList();
+class PassiveListeners extends ListenerMap {
+    tick: ListenerList<TickEvent> = new ListenerList();
+    resize: ListenerList<ResizeCallBack> = new ListenerList();
 
-    constructor(map?: TickListeners) {
+    constructor(map?: PassiveListeners) {
         super();
         if (map != undefined) this.copy(map);
     }
 
-    clone(): TickListeners {
-        return new TickListeners(this);
+    clone(): PassiveListeners {
+        return new PassiveListeners(this);
     }
 
-    addEventListener(eventType: TickEventType, callback: TickEvent) {
-        this.ontick.push(callback);
+    addEventListener(eventType: PassiveEventType, listener: TickEvent | ResizeCallBack) {
+        this[eventType].push(listener as any);
     }
 
-    trigger(actor: any, eventType: TickEventType, ...argArray: any[]) {
-        const delta = argArray.length >= 1 ? argArray[0] : 1.0;
-        this.ontick.forEach(event => {
+    updateOnTick(actor: any, delta: number = 1.0) {
+        this.tick.forEach(event => {
             event.prog += delta;
             if (event.prog >= event.interval) {
                 event.prog = 0;
                 event.repeat--;
                 event.call(actor, event);
-                
             }
         });
-        this.ontick.filter((event)=>(event.repeat != 0));
+        this.tick.filter((event)=>(event.repeat != 0));
+    }
+
+    trigger(actor: any, eventType: PassiveEventType, ...argArray: any[]) {
+        this[eventType].trigger(actor, ...argArray);
     }
 }
 
-class InteractiveListeners extends TickListeners {
+class InteractiveListeners extends PassiveListeners {
 
     mousedown:  ListenerList<MouseCallBack> = new ListenerList();
     mouseup:    ListenerList<MouseCallBack> = new ListenerList();
@@ -219,18 +224,13 @@ class InteractiveListeners extends TickListeners {
     }
 
     trigger(actor: any, eventType: StageIntEventType, ...argArray: any[]) {
-        if (eventType == "ontick") {
-            super.trigger(actor, EVENTYPE.ONTICK, ...argArray);
-        } else {
-            (this[eventType] as ListenerList<MouseCallBack>).trigger(actor,...argArray);
-        }
+        this[eventType].trigger(actor, ...argArray);
     }
 
     addBehavior(behavior: MouseEventBehavior) {
         if (behavior.bhvname in this) this.removeBehavior(behavior.bhvname);
         for (const key in behavior) {
             if (key in this) {
-                
                 this[key].push(behavior[key]);
             }
         }
@@ -269,7 +269,6 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
     ID: number;
 
     frame: Rect2D;
-
     pos: Vector2D;
     scale: Vector2D;
     stret: Vector2D;
@@ -285,7 +284,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
     borderWidth: number = 0.0;
     visible: boolean = true;
 
-    listeners: TickListeners;
+    listeners: PassiveListeners;
     states: StateMap<Object2DProperties> | undefined;
 
     debug: boolean = false;
@@ -303,7 +302,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         if (assign == DATA_UNINIT) return this;
 
         Object2D.ObjectList?.push(this);
-        if (this.class != "Object2D") {
+        if (this.class != "Object2D") {  
             this.constructor["ObjectList"]?.push(this);
         }
         super.initialize(parameters, def, assign);
@@ -383,6 +382,10 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         this.scale.y = value / this.graphics.bound.height / this.stret.y;
     }
 
+    get dimension(): Vector2D {
+        return this.graphics.bound.dimension.scale(this.scale);
+    }
+
     get bound(): Rect2D {
         return this.graphics.bound.clone().scale(this.scale);
     }
@@ -396,20 +399,18 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         return this;
     }
 
-    resize(width: number | Vector2D = this.width, height: number = this.height): this {
-        if (width instanceof Vector2D) {
-            this.width = width.x;
-            this.height = width.y;
-        } else {
-            this.width = width;
-            this.height = height;
+    resize(parent: Vector2D, event: UIEvent = undefined): this {
+        if (this.frame instanceof Rect2D) {
+            if (this.frame.x != undefined)
+                this.pos.x = parent.x * this.frame.x;
+            if (this.frame.y != undefined)
+                this.pos.y = parent.y * this.frame.y;
+            if (this.frame.width != undefined)
+                this.width = parent.x * this.frame.width;
+            if (this.frame.height != undefined)
+                this.height = parent.y * this.frame.height;
         }
-        return this;
-    }
-
-    reframe(frame: Rect2D): this {
-        if (frame == undefined) return this;
-
+        this.listeners?.trigger(this, EVENTYPE.RESIZE, parent, event);
         return this;
     }
 
@@ -500,7 +501,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
     }
     
     update(delta: number = 1.0) {
-        this.listeners?.trigger(this, EVENTYPE.ONTICK, delta);
+        this.listeners?.updateOnTick(this, delta);
     } 
 
     render(ctx: CanvasRenderingContext2D = Object2D.DefaultContext) {
@@ -535,8 +536,13 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
 
     addTickEventListener(listener: TickCallBack, settings: TickEventProperties = {}): TickEvent {
         const event = Object.assign(listener, Object2D.DEF_TICKEVENTPROP);
-        this.listeners.addEventListener(EVENTYPE.ONTICK, Object.assign(event, settings));
+        this.listeners.addEventListener(EVENTYPE.TICK, Object.assign(event, settings));
         return event;  
+    }
+
+    addResizeEventListener(listener: ResizeCallBack): this {
+        this.listeners.addEventListener(EVENTYPE.RESIZE, listener);
+        return this;
     }
 
     temporify(life: number = 100): void {
@@ -597,7 +603,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         borderWidth: 0,
         visible: true,
 
-        listeners: new TickListeners(),
+        listeners: new PassiveListeners(),
         states: undefined,
 
         debug: false
@@ -649,21 +655,21 @@ class StageObject extends Object2D implements StageObjectProperties {
         return ctxOrPos;
     }
 
+    resize(parent: Vector2D, event?: UIEvent): this {
+        super.resize(parent, event);
+        return this.resizeChildren(event);
+    }
+
+    resizeChildren(event: UIEvent): this {
+        this.components.forEach(comp => {
+            comp.resize(this.dimension, event);
+        });
+        return this;
+    }
+
     refresh(): this {
         this.components.forEach(comp => {
-            if (comp.frame instanceof Rect2D) {
-                if (comp.frame.x != undefined)
-                    comp.pos.x = this.width * comp.frame.x;
-                if (comp.frame.y != undefined)
-                    comp.pos.y = this.height * comp.frame.y;
-                if (comp.frame.width != undefined)
-                    comp.width = this.width * comp.frame.width;
-                if (comp.frame.height != undefined)
-                    comp.height = this.height * comp.frame.height;
-            }
-            if (comp instanceof StageObject) {
-                comp.refresh();
-            }
+            comp.refresh();
         });
         super.refresh();
         return this;

@@ -105,6 +105,28 @@ export function run_CanvasButton() {
     
 }
 
+export function run_CanvasContainer() {
+    STG.CanvasContainer.ObjectList = (renderList as STG.CanvasContainer[]);
+
+
+    let cct = new STG.CanvasContainer({
+        fillColor: "black",
+        pos: [200,200],
+        scale: [3,3],
+        clipWithin: true,
+    }).bindMouseEvents(canv);
+
+    cct.add(new STG.StageInteractive({
+        frame: [0.5,0.5],
+        fillColor: "blue",
+        draggable: true,
+    }))
+
+    console.log(renderList);
+
+    render();
+}
+
 export function run_Clipper() {
     STG.CanvasButton.ObjectList = (renderList as STG.CanvasButton[]);
     STG.StageInteractive.CanvasDOM = canv;

@@ -3,10 +3,11 @@ import { Vector2D, Rect2D, Rotation2D, Color } from "./Struct.js";
 import { Graphics2D } from "./Graphics2D.js";
 import { Animation } from "./Animation.js";
 import { SObject, ASN_DEF, DATA_IDEN, DATA_UNINIT, DATA_CLONE, StateMap, ListenerList, ListenerMap } from "./DataUtil.js";
-export { ContextTransf, ContextMouseEvent, TickListeners, InteractiveListeners, Object2D, StageObject, StageInteractive, StageDynamic, };
+export { ContextTransf, ContextMouseEvent, PassiveListeners, InteractiveListeners, Object2D, StageObject, StageInteractive, StageDynamic, };
 var EVENTYPE;
 (function (EVENTYPE) {
-    EVENTYPE["ONTICK"] = "ontick";
+    EVENTYPE["TICK"] = "tick";
+    EVENTYPE["RESIZE"] = "resize";
     EVENTYPE["MOUSEMOVE"] = "mousemove";
     EVENTYPE["MOUSEENTER"] = "mouseenter";
     EVENTYPE["MOUSLEAVE"] = "mouseleave";
@@ -97,22 +98,22 @@ class ContextMouseEvent {
         this.mCtxPos = this.mousePos.clone();
     }
 }
-class TickListeners extends ListenerMap {
+class PassiveListeners extends ListenerMap {
     constructor(map) {
         super();
-        this.ontick = new ListenerList();
+        this.tick = new ListenerList();
+        this.resize = new ListenerList();
         if (map != undefined)
             this.copy(map);
     }
     clone() {
-        return new TickListeners(this);
+        return new PassiveListeners(this);
     }
-    addEventListener(eventType, callback) {
-        this.ontick.push(callback);
+    addEventListener(eventType, listener) {
+        this[eventType].push(listener);
     }
-    trigger(actor, eventType, ...argArray) {
-        const delta = argArray.length >= 1 ? argArray[0] : 1.0;
-        this.ontick.forEach(event => {
+    updateOnTick(actor, delta = 1.0) {
+        this.tick.forEach(event => {
             event.prog += delta;
             if (event.prog >= event.interval) {
                 event.prog = 0;
@@ -120,10 +121,13 @@ class TickListeners extends ListenerMap {
                 event.call(actor, event);
             }
         });
-        this.ontick.filter((event) => (event.repeat != 0));
+        this.tick.filter((event) => (event.repeat != 0));
+    }
+    trigger(actor, eventType, ...argArray) {
+        this[eventType].trigger(actor, ...argArray);
     }
 }
-class InteractiveListeners extends TickListeners {
+class InteractiveListeners extends PassiveListeners {
     constructor(map) {
         super();
         this.mousedown = new ListenerList();
@@ -145,12 +149,7 @@ class InteractiveListeners extends TickListeners {
         this[eventType].push(listener);
     }
     trigger(actor, eventType, ...argArray) {
-        if (eventType == "ontick") {
-            super.trigger(actor, EVENTYPE.ONTICK, ...argArray);
-        }
-        else {
-            this[eventType].trigger(actor, ...argArray);
-        }
+        this[eventType].trigger(actor, ...argArray);
     }
     addBehavior(behavior) {
         if (behavior.bhvname in this)
@@ -266,6 +265,9 @@ class Object2D extends SObject {
     set height(value) {
         this.scale.y = value / this.graphics.bound.height / this.stret.y;
     }
+    get dimension() {
+        return this.graphics.bound.dimension.scale(this.scale);
+    }
     get bound() {
         return this.graphics.bound.clone().scale(this.scale);
     }
@@ -276,20 +278,18 @@ class Object2D extends SObject {
         this.pos.moveTo(x, y);
         return this;
     }
-    resize(width = this.width, height = this.height) {
-        if (width instanceof Vector2D) {
-            this.width = width.x;
-            this.height = width.y;
+    resize(parent, event = undefined) {
+        if (this.frame instanceof Rect2D) {
+            if (this.frame.x != undefined)
+                this.pos.x = parent.x * this.frame.x;
+            if (this.frame.y != undefined)
+                this.pos.y = parent.y * this.frame.y;
+            if (this.frame.width != undefined)
+                this.width = parent.x * this.frame.width;
+            if (this.frame.height != undefined)
+                this.height = parent.y * this.frame.height;
         }
-        else {
-            this.width = width;
-            this.height = height;
-        }
-        return this;
-    }
-    reframe(frame) {
-        if (frame == undefined)
-            return this;
+        this.listeners?.trigger(this, EVENTYPE.RESIZE, parent, event);
         return this;
     }
     copy(other) {
@@ -366,7 +366,7 @@ class Object2D extends SObject {
         this.render(ctx);
     }
     update(delta = 1.0) {
-        this.listeners?.trigger(this, EVENTYPE.ONTICK, delta);
+        this.listeners?.updateOnTick(this, delta);
     }
     render(ctx = Object2D.DefaultContext) {
         if (!this.visible)
@@ -391,8 +391,12 @@ class Object2D extends SObject {
     }
     addTickEventListener(listener, settings = {}) {
         const event = Object.assign(listener, Object2D.DEF_TICKEVENTPROP);
-        this.listeners.addEventListener(EVENTYPE.ONTICK, Object.assign(event, settings));
+        this.listeners.addEventListener(EVENTYPE.TICK, Object.assign(event, settings));
         return event;
+    }
+    addResizeEventListener(listener) {
+        this.listeners.addEventListener(EVENTYPE.RESIZE, listener);
+        return this;
     }
     temporify(life = 100) {
         this.addTickEventListener(this.finalize, {
@@ -444,7 +448,7 @@ Object2D.DEF_PROP = {
     emissive: 0,
     borderWidth: 0,
     visible: true,
-    listeners: new TickListeners(),
+    listeners: new PassiveListeners(),
     states: undefined,
     debug: false
 };
@@ -481,21 +485,19 @@ class StageObject extends Object2D {
         }
         return ctxOrPos;
     }
+    resize(parent, event) {
+        super.resize(parent, event);
+        return this.resizeChildren(event);
+    }
+    resizeChildren(event) {
+        this.components.forEach(comp => {
+            comp.resize(this.dimension, event);
+        });
+        return this;
+    }
     refresh() {
         this.components.forEach(comp => {
-            if (comp.frame instanceof Rect2D) {
-                if (comp.frame.x != undefined)
-                    comp.pos.x = this.width * comp.frame.x;
-                if (comp.frame.y != undefined)
-                    comp.pos.y = this.height * comp.frame.y;
-                if (comp.frame.width != undefined)
-                    comp.width = this.width * comp.frame.width;
-                if (comp.frame.height != undefined)
-                    comp.height = this.height * comp.frame.height;
-            }
-            if (comp instanceof StageObject) {
-                comp.refresh();
-            }
+            comp.refresh();
         });
         super.refresh();
         return this;
