@@ -114,6 +114,8 @@ class PassiveListeners extends ListenerMap {
     }
     updateOnTick(actor, delta = 1.0) {
         this.tick.forEach(event => {
+            if (!event.enable)
+                return;
             event.prog += delta;
             if (event.prog >= event.interval) {
                 event.prog = 0;
@@ -394,7 +396,7 @@ class Object2D extends SObject {
         this.listeners.addEventListener(EVENTYPE.TICK, Object.assign(event, settings));
         return event;
     }
-    addResizeEventListener(listener) {
+    addResizeListener(listener) {
         this.listeners.addEventListener(EVENTYPE.RESIZE, listener);
         return this;
     }
@@ -457,6 +459,7 @@ Object2D.DEF_TICKEVENTPROP = {
     prog: 0,
     interval: 100,
     repeat: -1,
+    enable: true
 };
 class StageObject extends Object2D {
     constructor(parameters = {}, assign = DATA_IDEN) {

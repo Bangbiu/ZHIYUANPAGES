@@ -1,13 +1,16 @@
 /*jshint esversion: ES2020 */
-
 import { SObject } from "./DataUtil.js";
 import { clamp, warp } from "./SMath.js";
 import { 
     Rectizable, 
     Rotationizable, 
     Vectorizable, 
-    Colorizable, 
+    Colorizable,
+    ClipFunction,
+    ColorTuple, 
 } from "./TypeUtil";
+
+import COLORS from './Presets/Colors.json' assert {type: 'json'}
 
 export const PI: number = Math.PI;
 export const DPI: number = PI * 2;
@@ -522,46 +525,88 @@ class Rect2D extends Vector2D {
 }
 
 class Color extends SObject {
-    
-    r: number = 0;
-    g: number = 0;
-    b: number = 0;
-    a: number = 255;
-    text: string = undefined;
+    #r: number = -1;
+    #g: number = -1;
+    #b: number = -1;
+    #a: number = -1;
+    val: string = undefined;
 
     constructor(r?: Colorizable, g?: number, b?: number, a?: number) {
         super();
+        let seq: ColorTuple;
         if (typeof r == "number") {
-            this.set(r,g,b,a);
+            seq = [r, g, b, a];
         } else if (typeof r == "string") {
-            this.text = r;
-        } else if (typeof r == "object") {
-            if (r instanceof Color) 
-                this.copy(r);
-            else if (r instanceof Array)
-                this.set(r[0], r[1], r[2], (r.length > 3 ? r[3] : 255));
+            seq = Color.decompose(r);
+        } else if (r instanceof Color) { 
+            seq = r.seq;
+        } else if (r instanceof Array) {
+            while (r.length < 3) r.push(0);
+            if (r.length < 4) r.push(255);
+            seq = r as any;
         }
+        this.set(seq);
+    }
+
+    get r(): number {
+        return this.#r;
+    }
+
+    set r(value: number) {
+        this.#r = Color.CLIP(value);
+        this.updateColorText();
+    }
+
+    get g(): number {
+        return this.#g;
+    }
+
+    set g(value: number) {
+        this.#g = Color.CLIP(value);
+        this.updateColorText();
+    }
+
+    get b(): number {
+        return this.#b;
+    }
+
+    set b(value: number) {
+        this.#b = Color.CLIP(value);
+        this.updateColorText();
+    }
+
+    get a(): number {
+        return this.#a;
+    }
+
+    set a(value: number) {
+        this.#a = Color.CLIP(value);
+        this.updateColorText();
     }
 
     copy(other: Color): this {
-        if (other.text == undefined) {
-            this.set(other.r,other.g,other.b,other.a);
-        } else {
-            this.text = other.text;
-        }
+        this.set(other.seq);
         return this;
     }
 
     clone(): Color {
-        return new Color(this);
+        return new Color(this.seq);
     }
 
-    set(r: number = this.r,g: number = this.g,b: number = this.b,a: number = this.a): this {
-        this.r = r;
-        this.g = g;
-        this.b = b;
-        this.a = a;
-        this.text = undefined;
+    set(r: number | ColorTuple = this.r, g: number = this.g, b: number = this.b, a: number = this.a): this {
+        if (r instanceof Array) {
+            this.#r = r[0];
+            this.#g = r[1];
+            this.#b = r[2];
+            this.#a = r[3];
+        } else {
+            this.#r = r;
+            this.#g = g;
+            this.#b = b;
+            this.#a = a;
+        }
+        this.clip();
+        this.updateColorText();
         return this;
     }
 
@@ -570,47 +615,62 @@ class Color extends SObject {
             this.a = a;
         else
             this.a = 255 * a;
-        this.text = undefined;
+        this.updateColorText();
         return this;
     }
 
     add(other: Colorizable): this {
         if (other instanceof Color) {
-            this.r += other.r;
-            this.g += other.g;
-            this.b += other.b;
+            this.#r += other.r;
+            this.#g += other.g;
+            this.#b += other.b;
         } else {
-            this.r += other[0];
-            this.g += other[1];
-            this.b += other[2];
+            this.#r += other[0];
+            this.#g += other[1];
+            this.#b += other[2];
         }
-        this.text = undefined;
+        this.updateColorText();
         return this;
     }
 
-    cut(): this {
-        this.r = clamp(this.r, 255);
-        this.g = clamp(this.g, 255);
-        this.b = clamp(this.b, 255);
-        this.a = clamp(this.a, 255);
+    clip(): this {
+        this.#r = Color.CLIP(this.#r, 255);
+        this.#g = Color.CLIP(this.#g, 255);
+        this.#b = Color.CLIP(this.#b, 255);
+        this.#a = Color.CLIP(this.#a, 255);
         return this;
     }
 
-    get seq(): [number, number, number, number] {
-        return [this.r,this.g,this.b,this.a];
+    get seq(): ColorTuple {
+        return [this.#r, this.#g, this.#b, this.#a];
     }
 
-    get value(): string {
-        if (this.text != undefined) return this.text;
+    updateColorText(): this {
         let colorCode = "#";
-        this.cut();
         this.seq.forEach(cbyte => {
             let hexCode = Math.floor(cbyte).toString(16)
             colorCode += Array(3 - hexCode.length).join('0') + hexCode;
         });
-        this.text = colorCode;
-        return colorCode;
+        this.val = colorCode;
+        return this;
     }
+
+    static decompose(text: string): ColorTuple {
+        if (text.startsWith("#")) {
+            return [
+                parseInt(text.slice(1,3), 16),
+                parseInt(text.slice(3,5), 16),
+                parseInt(text.slice(5,7), 16),
+                text.length == 9 ? parseInt(text.slice(7,9), 16) : 255,
+            ]
+        } else if (text in COLORS) {
+            return [...COLORS[text], 255] as ColorTuple;
+        } else {
+            return [0, 0, 0, 255];
+        }
+    }
+
+    static CLIP: ClipFunction = clamp;
 
 }
 

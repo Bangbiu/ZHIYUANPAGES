@@ -182,6 +182,7 @@ class PassiveListeners<T> extends ListenerMap {
 
     updateOnTick(actor: any, delta: number = 1.0) {
         this.tick.forEach(event => {
+            if (!event.enable) return;
             event.prog += delta;
             if (event.prog >= event.interval) {
                 event.prog = 0;
@@ -540,7 +541,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         return event;  
     }
 
-    addResizeEventListener(listener: ResizeCallBack<typeof this>): this {
+    addResizeListener(listener: ResizeCallBack<typeof this>): this {
         this.listeners.addEventListener(EVENTYPE.RESIZE, listener);
         return this;
     }
@@ -614,6 +615,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         prog: 0,
         interval: 100,
         repeat: -1,
+        enable: true
     }
 
 }

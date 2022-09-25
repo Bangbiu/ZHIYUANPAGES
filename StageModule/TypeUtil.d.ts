@@ -14,7 +14,7 @@ declare type StageIntEventType = PassiveEventType | MouseEventType | KeyBoardEve
 
 declare type InteractiveState = "idle"|"hover"|"pressed";
 declare type JSDataType = "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
-declare type CuttingFunctionType = "warp"|"mirror"|"clamp";
+declare type ClipFunction = (value: number, ...argArray: any[]) => number;
 
 declare type HorizontalPosition = "left"|"centerH"|"right";
 declare type VerticalPosition = "top"|"centerV"|"bottom";
@@ -29,6 +29,7 @@ declare type Getter = () => any;
 declare type Setter = (v) => boolean;
 
 declare type ColorText = keyof typeof COLORS;
+declare type ColorTuple = [number, number, number, number];
 
 declare type DataAssignType = "identical"|"clone"|"uninit";
 

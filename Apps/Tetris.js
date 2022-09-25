@@ -21,6 +21,7 @@ var OPERATION;
     OPERATION["MOVE_L"] = "ArrowLeft";
     OPERATION["MOVE_R"] = "ArrowRight";
     OPERATION["FALL"] = "ArrowDown";
+    OPERATION["PAUSE"] = "Space";
 })(OPERATION || (OPERATION = {}));
 export default class Tetris extends STG.Stage {
     constructor(canvas) {
@@ -31,15 +32,16 @@ export default class Tetris extends STG.Stage {
         this.falling = new Tetromino();
         //Operation
         this.addKeyBoardListener("keydown", this.keyBoardOperate.bind(this));
+        console.log(this.board);
     }
-    refresh() {
-        this.resize();
+    resizeChildren() {
         const blockSize = Math.floor(this.height / Tetris.SIZE.y);
         const boardSize = Tetris.SIZE.clone().scale(blockSize);
         this.board.pos.copy(this.bound.dimension).sub(boardSize).scale(0.5);
         this.board.width = boardSize.x;
         this.board.height = boardSize.y;
-        return super.refresh();
+        super.resizeChildren();
+        return this;
     }
     launch() {
         this.ticker = this.addTickEventListener(this.step.bind(this), {
@@ -63,13 +65,17 @@ export default class Tetris extends STG.Stage {
         this.ticker.prog = 0;
     }
     keyBoardOperate(event) {
-        if (!STG.isInObject(OPERATION, event.key))
+        if (!STG.isInObject(OPERATION, event.code))
             return;
-        if (event.key == OPERATION.FALL) {
-            this.fallOnGround();
-        }
-        else {
-            this.operate(event.key);
+        switch (event.code) {
+            case OPERATION.FALL:
+                this.fallOnGround();
+                break;
+            case OPERATION.PAUSE:
+                this.ticker.enable = !this.ticker.enable;
+                break;
+            default:
+                this.operate(event.key);
         }
     }
     operate(option) {

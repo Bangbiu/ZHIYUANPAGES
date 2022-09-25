@@ -28,7 +28,7 @@ export default class SnakeGame extends STG.Stage {
         this.add(this.board);
         //DIRECTION
         this.addKeyBoardListener("keydown", this.keyBoardOperate.bind(this));
-        this.addResizeEventListener(function(dim, ev) {
+        this.addResizeListener(function(dim, ev) {
             const blockSize = Math.floor(this.height / SnakeGame.SIZE.y);
             const boardSize = SnakeGame.SIZE.clone().scale(blockSize);
 
@@ -36,6 +36,7 @@ export default class SnakeGame extends STG.Stage {
             this.board.width = boardSize.x;
             this.board.height = boardSize.y;
         })
+        this.refresh();
     }
 
     launch(): this {

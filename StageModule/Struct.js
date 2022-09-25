@@ -1,6 +1,19 @@
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
+var _Color_r, _Color_g, _Color_b, _Color_a;
 /*jshint esversion: ES2020 */
 import { SObject } from "./DataUtil.js";
 import { clamp, warp } from "./SMath.js";
+import COLORS from './Presets/Colors.json' assert { type: 'json' };
 export const PI = Math.PI;
 export const DPI = PI * 2;
 export const ROUND_OFF = 0.0001;
@@ -433,42 +446,80 @@ class Rect2D extends Vector2D {
 class Color extends SObject {
     constructor(r, g, b, a) {
         super();
-        this.r = 0;
-        this.g = 0;
-        this.b = 0;
-        this.a = 255;
-        this.text = undefined;
+        _Color_r.set(this, -1);
+        _Color_g.set(this, -1);
+        _Color_b.set(this, -1);
+        _Color_a.set(this, -1);
+        this.val = undefined;
+        let seq;
         if (typeof r == "number") {
-            this.set(r, g, b, a);
+            seq = [r, g, b, a];
         }
         else if (typeof r == "string") {
-            this.text = r;
+            seq = Color.decompose(r);
         }
-        else if (typeof r == "object") {
-            if (r instanceof Color)
-                this.copy(r);
-            else if (r instanceof Array)
-                this.set(r[0], r[1], r[2], (r.length > 3 ? r[3] : 255));
+        else if (r instanceof Color) {
+            seq = r.seq;
         }
+        else if (r instanceof Array) {
+            while (r.length < 3)
+                r.push(0);
+            if (r.length < 4)
+                r.push(255);
+            seq = r;
+        }
+        this.set(seq);
+    }
+    get r() {
+        return __classPrivateFieldGet(this, _Color_r, "f");
+    }
+    set r(value) {
+        __classPrivateFieldSet(this, _Color_r, Color.CLIP(value), "f");
+        this.updateColorText();
+    }
+    get g() {
+        return __classPrivateFieldGet(this, _Color_g, "f");
+    }
+    set g(value) {
+        __classPrivateFieldSet(this, _Color_g, Color.CLIP(value), "f");
+        this.updateColorText();
+    }
+    get b() {
+        return __classPrivateFieldGet(this, _Color_b, "f");
+    }
+    set b(value) {
+        __classPrivateFieldSet(this, _Color_b, Color.CLIP(value), "f");
+        this.updateColorText();
+    }
+    get a() {
+        return __classPrivateFieldGet(this, _Color_a, "f");
+    }
+    set a(value) {
+        __classPrivateFieldSet(this, _Color_a, Color.CLIP(value), "f");
+        this.updateColorText();
     }
     copy(other) {
-        if (other.text == undefined) {
-            this.set(other.r, other.g, other.b, other.a);
-        }
-        else {
-            this.text = other.text;
-        }
+        this.set(other.seq);
         return this;
     }
     clone() {
-        return new Color(this);
+        return new Color(this.seq);
     }
     set(r = this.r, g = this.g, b = this.b, a = this.a) {
-        this.r = r;
-        this.g = g;
-        this.b = b;
-        this.a = a;
-        this.text = undefined;
+        if (r instanceof Array) {
+            __classPrivateFieldSet(this, _Color_r, r[0], "f");
+            __classPrivateFieldSet(this, _Color_g, r[1], "f");
+            __classPrivateFieldSet(this, _Color_b, r[2], "f");
+            __classPrivateFieldSet(this, _Color_a, r[3], "f");
+        }
+        else {
+            __classPrivateFieldSet(this, _Color_r, r, "f");
+            __classPrivateFieldSet(this, _Color_g, g, "f");
+            __classPrivateFieldSet(this, _Color_b, b, "f");
+            __classPrivateFieldSet(this, _Color_a, a, "f");
+        }
+        this.clip();
+        this.updateColorText();
         return this;
     }
     setAlpha(a) {
@@ -476,43 +527,58 @@ class Color extends SObject {
             this.a = a;
         else
             this.a = 255 * a;
-        this.text = undefined;
+        this.updateColorText();
         return this;
     }
     add(other) {
         if (other instanceof Color) {
-            this.r += other.r;
-            this.g += other.g;
-            this.b += other.b;
+            __classPrivateFieldSet(this, _Color_r, __classPrivateFieldGet(this, _Color_r, "f") + other.r, "f");
+            __classPrivateFieldSet(this, _Color_g, __classPrivateFieldGet(this, _Color_g, "f") + other.g, "f");
+            __classPrivateFieldSet(this, _Color_b, __classPrivateFieldGet(this, _Color_b, "f") + other.b, "f");
         }
         else {
-            this.r += other[0];
-            this.g += other[1];
-            this.b += other[2];
+            __classPrivateFieldSet(this, _Color_r, __classPrivateFieldGet(this, _Color_r, "f") + other[0], "f");
+            __classPrivateFieldSet(this, _Color_g, __classPrivateFieldGet(this, _Color_g, "f") + other[1], "f");
+            __classPrivateFieldSet(this, _Color_b, __classPrivateFieldGet(this, _Color_b, "f") + other[2], "f");
         }
-        this.text = undefined;
+        this.updateColorText();
         return this;
     }
-    cut() {
-        this.r = clamp(this.r, 255);
-        this.g = clamp(this.g, 255);
-        this.b = clamp(this.b, 255);
-        this.a = clamp(this.a, 255);
+    clip() {
+        __classPrivateFieldSet(this, _Color_r, Color.CLIP(__classPrivateFieldGet(this, _Color_r, "f"), 255), "f");
+        __classPrivateFieldSet(this, _Color_g, Color.CLIP(__classPrivateFieldGet(this, _Color_g, "f"), 255), "f");
+        __classPrivateFieldSet(this, _Color_b, Color.CLIP(__classPrivateFieldGet(this, _Color_b, "f"), 255), "f");
+        __classPrivateFieldSet(this, _Color_a, Color.CLIP(__classPrivateFieldGet(this, _Color_a, "f"), 255), "f");
         return this;
     }
     get seq() {
-        return [this.r, this.g, this.b, this.a];
+        return [__classPrivateFieldGet(this, _Color_r, "f"), __classPrivateFieldGet(this, _Color_g, "f"), __classPrivateFieldGet(this, _Color_b, "f"), __classPrivateFieldGet(this, _Color_a, "f")];
     }
-    get value() {
-        if (this.text != undefined)
-            return this.text;
+    updateColorText() {
         let colorCode = "#";
-        this.cut();
         this.seq.forEach(cbyte => {
             let hexCode = Math.floor(cbyte).toString(16);
             colorCode += Array(3 - hexCode.length).join('0') + hexCode;
         });
-        this.text = colorCode;
-        return colorCode;
+        this.val = colorCode;
+        return this;
+    }
+    static decompose(text) {
+        if (text.startsWith("#")) {
+            return [
+                parseInt(text.slice(1, 3), 16),
+                parseInt(text.slice(3, 5), 16),
+                parseInt(text.slice(5, 7), 16),
+                text.length == 9 ? parseInt(text.slice(7, 9), 16) : 255,
+            ];
+        }
+        else if (text in COLORS) {
+            return [...COLORS[text], 255];
+        }
+        else {
+            return [0, 0, 0, 255];
+        }
     }
 }
+_Color_r = new WeakMap(), _Color_g = new WeakMap(), _Color_b = new WeakMap(), _Color_a = new WeakMap();
+Color.CLIP = clamp;
