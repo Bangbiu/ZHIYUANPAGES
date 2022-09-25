@@ -40,15 +40,15 @@ declare type Graphizable = string | Graphics2D | Polygon;
 declare type Numerizable = number | string;
 declare type Transfizable = string | ContextTransfProperties | ContextTransf | Object2D;
 
-declare type ResizeCallBack = (this: Object2D, parent: Vector2D, ev: UIEvent) => any;
+declare type ResizeCallBack<T> = (this: T, parent: Vector2D, ev: UIEvent) => any;
 
-declare type TickEvent = TickCallBack & TickEventProperties;
-declare type TickCallBack = (this: Object2D, ev: TickEvent) => any;
+declare type TickEvent<T> = TickCallBack<T> & TickEventProperties;
+declare type TickCallBack<T> = (this: T, ev: TickEvent<T>) => any;
 
 declare type MouseEventInfo = MouseEvent | WheelEvent;
-declare type MouseCallBack = (this: StageInteractive, ev: ContextMouseEvent) => any;
+declare type MouseCallBack<T extends StageInteractive> = (this: T, ev: ContextMouseEvent) => any;
 
-declare type KBCallBack = (this: StageInteractive, ev: KeyboardEvent) => any;
+declare type KBCallBack<T extends StageInteractive> = (this: T, ev: KeyboardEvent) => any;
 
 declare type Polygon = [number, number][];
 declare type ParsedPath = PathCommand[];
@@ -84,14 +84,14 @@ declare interface ContextTransfProperties {
     scale?: Vectorizable;
 }
 
-declare interface MouseEventBehavior {
+declare interface MouseEventBehavior<T extends StageInteractive> {
     bhvname: string;
-    mousedown?: MouseCallBack;
-    mouseup?: MouseCallBack;
-    mousemove?: MouseCallBack;
-    mouseenter?: MouseCallBack;
-    mouseleave?: MouseCallBack;
-    wheel?: MouseCallBack;
+    mousedown?: MouseCallBack<T>;
+    mouseup?: MouseCallBack<T>;
+    mousemove?: MouseCallBack<T>;
+    mouseenter?: MouseCallBack<T>;
+    mouseleave?: MouseCallBack<T>;
+    wheel?: MouseCallBack<T>;
 }
 
 declare interface Polymorphistic {
@@ -127,7 +127,7 @@ declare interface Object2DSubProperties {
     rot?: Rotationizable;
     transf?: Transfizable;
 
-    listeners?: PassiveListeners;
+    listeners?: PassiveListeners<Object2D>;
     states?: Object;
 
     debug?: boolean;
@@ -141,7 +141,7 @@ declare interface StageObjectSubProperties {
     mainBody?: boolean;
     clipWithin?: boolean;
     innerTransf?: ContextTransf | string;
-    listeners?: PassiveListeners;
+    listeners?: PassiveListeners<StageObjectSubProperties>;
     states?: Object;
 }
 
@@ -149,7 +149,7 @@ declare type StageObjectProperties = Object2DProperties & StageObjectSubProperti
 
 declare interface StageInteractiveSubProperties {
     draggable?: boolean;
-    listeners?: InteractiveListeners;
+    listeners?: InteractiveListeners<StageInteractive>;
     states?: Object
 }
 

@@ -2,15 +2,16 @@
 /*jshint esversion: ES2020 */
 // @ts-check
 import { Attribution } from "./DataUtil.js";
+import { Object2D } from "./Object2D.js";
 import { TickCallBack } from "./TypeUtil.js";
 
 export class Animation {
-    static derive: (target: Attribution, deltaArr: any[]) => TickCallBack;
-    static toggle: (target: Attribution, seq: any[]) => TickCallBack;
-    static transition: (target: Attribution, stops: any[]) => TickCallBack;
+    static derive: (target: Attribution, deltaArr: any[]) => TickCallBack<Object2D>;
+    static toggle: (target: Attribution, seq: any[]) => TickCallBack<Object2D>;
+    static transition: (target: Attribution, stops: any[]) => TickCallBack<Object2D>;
 }
 
-Animation.derive = function DeriveAnimation(target: Attribution, deltaArr: any[]): TickCallBack {
+Animation.derive = function DeriveAnimation(target: Attribution, deltaArr: any[]): TickCallBack<Object2D> {
     if (target == undefined)
         return undefined;
     let deltaDpts = Attribution.attributize(deltaArr);
@@ -23,7 +24,7 @@ Animation.derive = function DeriveAnimation(target: Attribution, deltaArr: any[]
     };
 };
 
-Animation.toggle = function ToggleAnimation(target: Attribution, seq: any[]): TickCallBack {
+Animation.toggle = function ToggleAnimation(target: Attribution, seq: any[]): TickCallBack<Object2D> {
     if (target == undefined)
         return undefined;
     let index = 0;
@@ -33,7 +34,7 @@ Animation.toggle = function ToggleAnimation(target: Attribution, seq: any[]): Ti
     };
 };
 
-Animation.transition = function TransitionAnimation(target: Attribution, stops: any[]): TickCallBack {
+Animation.transition = function TransitionAnimation(target: Attribution, stops: any[]): TickCallBack<Object2D> {
     if (target == undefined)
         return undefined;
 };

@@ -22,15 +22,13 @@ export default class SnakeGame extends STG.Stage {
         this.add(this.board);
         //DIRECTION
         this.addKeyBoardListener("keydown", this.keyBoardOperate.bind(this));
-    }
-    refresh() {
-        this.resize();
-        const blockSize = Math.floor(this.height / SnakeGame.SIZE.y);
-        const boardSize = SnakeGame.SIZE.clone().scale(blockSize);
-        this.board.pos.copy(this.bound.dimension).sub(boardSize).scale(0.5);
-        this.board.width = boardSize.x;
-        this.board.height = boardSize.y;
-        return super.refresh();
+        this.addResizeEventListener(function (dim, ev) {
+            const blockSize = Math.floor(this.height / SnakeGame.SIZE.y);
+            const boardSize = SnakeGame.SIZE.clone().scale(blockSize);
+            this.board.pos.copy(this.bound.dimension).sub(boardSize).scale(0.5);
+            this.board.width = boardSize.x;
+            this.board.height = boardSize.y;
+        });
     }
     launch() {
         this.ticker = this.addTickEventListener(this.proceed.bind(this), {

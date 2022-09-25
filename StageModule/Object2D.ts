@@ -163,20 +163,20 @@ class ContextMouseEvent {
     }
 }
 
-class PassiveListeners extends ListenerMap {
-    tick: ListenerList<TickEvent> = new ListenerList();
-    resize: ListenerList<ResizeCallBack> = new ListenerList();
+class PassiveListeners<T> extends ListenerMap {
+    tick: ListenerList<TickEvent<T>> = new ListenerList();
+    resize: ListenerList<ResizeCallBack<T>> = new ListenerList();
 
-    constructor(map?: PassiveListeners) {
+    constructor(map?: PassiveListeners<T>) {
         super();
         if (map != undefined) this.copy(map);
     }
 
-    clone(): PassiveListeners {
+    clone(): PassiveListeners<T> {
         return new PassiveListeners(this);
     }
 
-    addEventListener(eventType: PassiveEventType, listener: TickEvent | ResizeCallBack) {
+    addEventListener(eventType: PassiveEventType, listener: TickEvent<T> | ResizeCallBack<T>) {
         this[eventType].push(listener as any);
     }
 
@@ -197,25 +197,25 @@ class PassiveListeners extends ListenerMap {
     }
 }
 
-class InteractiveListeners extends PassiveListeners {
+class InteractiveListeners<T extends StageInteractive> extends PassiveListeners<T> {
 
-    mousedown:  ListenerList<MouseCallBack> = new ListenerList();
-    mouseup:    ListenerList<MouseCallBack> = new ListenerList();
-    mousemove:  ListenerList<MouseCallBack> = new ListenerList();
-    mouseenter: ListenerList<MouseCallBack> = new ListenerList();
-    mouseleave: ListenerList<MouseCallBack> = new ListenerList();
-    wheel: ListenerList<MouseCallBack> = new ListenerList();
+    mousedown:  ListenerList<MouseCallBack<T>> = new ListenerList();
+    mouseup:    ListenerList<MouseCallBack<T>> = new ListenerList();
+    mousemove:  ListenerList<MouseCallBack<T>> = new ListenerList();
+    mouseenter: ListenerList<MouseCallBack<T>> = new ListenerList();
+    mouseleave: ListenerList<MouseCallBack<T>> = new ListenerList();
+    wheel: ListenerList<MouseCallBack<T>> = new ListenerList();
 
-    keydown: ListenerList<KBCallBack> = new ListenerList();
-    keypress: ListenerList<KBCallBack> = new ListenerList();
-    keyup: ListenerList<KBCallBack> = new ListenerList();
+    keydown: ListenerList<KBCallBack<T>> = new ListenerList();
+    keypress: ListenerList<KBCallBack<T>> = new ListenerList();
+    keyup: ListenerList<KBCallBack<T>> = new ListenerList();
 
-    constructor(map?: InteractiveListeners) {
+    constructor(map?: InteractiveListeners<T>) {
         super();
         if (map != undefined) this.copy(map);
     }
 
-    clone(): InteractiveListeners {
+    clone(): InteractiveListeners<T> {
         return new InteractiveListeners(this);
     }
 
@@ -227,7 +227,7 @@ class InteractiveListeners extends PassiveListeners {
         this[eventType].trigger(actor, ...argArray);
     }
 
-    addBehavior(behavior: MouseEventBehavior) {
+    addBehavior(behavior: MouseEventBehavior<T>) {
         if (behavior.bhvname in this) this.removeBehavior(behavior.bhvname);
         for (const key in behavior) {
             if (key in this) {
@@ -248,7 +248,7 @@ class InteractiveListeners extends PassiveListeners {
         }
     }
 
-    static BEHAVIOR_DRAGGABLE: MouseEventBehavior = {
+    static BEHAVIOR_DRAGGABLE: MouseEventBehavior<StageInteractive> = {
         bhvname: "draggable",
         mousedown: function(event) {
             if (!this.isInsideInteracting())
@@ -284,7 +284,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
     borderWidth: number = 0.0;
     visible: boolean = true;
 
-    listeners: PassiveListeners;
+    listeners: PassiveListeners<typeof this>;
     states: StateMap<Object2DProperties> | undefined;
 
     debug: boolean = false;
@@ -534,13 +534,13 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         ctx.restore();
     }
 
-    addTickEventListener(listener: TickCallBack, settings: TickEventProperties = {}): TickEvent {
+    addTickEventListener(listener: TickCallBack<typeof this>, settings: TickEventProperties = {}): TickEvent<typeof this> {
         const event = Object.assign(listener, Object2D.DEF_TICKEVENTPROP);
         this.listeners.addEventListener(EVENTYPE.TICK, Object.assign(event, settings));
         return event;  
     }
 
-    addResizeEventListener(listener: ResizeCallBack): this {
+    addResizeEventListener(listener: ResizeCallBack<typeof this>): this {
         this.listeners.addEventListener(EVENTYPE.RESIZE, listener);
         return this;
     }
@@ -552,7 +552,7 @@ class Object2D extends SObject implements Renderable, Object2DProperties, Polymo
         });
     }
 
-    animate(propText: string, data: any[], interval: number=1, type: AnimationType = "derive"): TickEvent {
+    animate(propText: string, data: any[], interval: number=1, type: AnimationType = "derive"): TickEvent<typeof this> {
         let attr = this.access(propText);
         if (attr == undefined) return undefined;
         let tickfunc = Animation[type](attr,data);
@@ -734,7 +734,7 @@ class StageObject extends Object2D implements StageObjectProperties {
 
 class StageInteractive extends StageObject implements StageInteractiveProperties {
     isMouseIn: boolean = false;
-    listeners: InteractiveListeners;
+    declare listeners: InteractiveListeners<typeof this>;
     declare states: StateMap<StageInteractiveProperties>;
     
     constructor( parameters: StageInteractiveProperties = {}, assign: DataAssignType = DATA_IDEN) {
@@ -782,12 +782,12 @@ class StageInteractive extends StageObject implements StageInteractiveProperties
         return this;
     }
 
-    addMouseEventListener(eventType: MouseEventType, listener: MouseCallBack): this {
+    addMouseEventListener(eventType: MouseEventType, listener: MouseCallBack<typeof this>): this {
         this.listeners.addEventListener(eventType, listener);  
         return this;
     }
 
-    addKeyBoardListener(eventType: KeyBoardEventType, listener: KBCallBack): this {
+    addKeyBoardListener(eventType: KeyBoardEventType, listener: KBCallBack<typeof this>): this {
         this.listeners.addEventListener(eventType, listener);
         return this;
     }

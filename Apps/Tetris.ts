@@ -29,7 +29,7 @@ export default class Tetris extends STG.Stage {
     board: Board = new Board();
     speed: number = 1;
     falling: Tetromino;
-    ticker: Types.TickEvent;
+    ticker: Types.TickEvent<Tetris>;
     
     constructor(canvas: HTMLCanvasElement) {
         super({canvas: canvas});

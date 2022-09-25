@@ -21,26 +21,21 @@ export default class SnakeGame extends STG.Stage {
     snake: Snake = new Snake();
     scoreBlock: STG.Vector2D;
     speed: number = 1;
-    ticker: Types.TickEvent;
+    ticker: Types.TickEvent<SnakeGame>;
     
     constructor(canvas: HTMLCanvasElement) {
         super({canvas: canvas});
         this.add(this.board);
         //DIRECTION
         this.addKeyBoardListener("keydown", this.keyBoardOperate.bind(this));
-    }
+        this.addResizeEventListener(function(dim, ev) {
+            const blockSize = Math.floor(this.height / SnakeGame.SIZE.y);
+            const boardSize = SnakeGame.SIZE.clone().scale(blockSize);
 
-    refresh(): this {
-        this.resize();
-
-        const blockSize = Math.floor(this.height / SnakeGame.SIZE.y);
-        const boardSize = SnakeGame.SIZE.clone().scale(blockSize);
-
-        this.board.pos.copy(this.bound.dimension).sub(boardSize).scale(0.5);
-        this.board.width = boardSize.x;
-        this.board.height = boardSize.y;
-
-        return super.refresh();
+            this.board.pos.copy(this.bound.dimension).sub(boardSize).scale(0.5);
+            this.board.width = boardSize.x;
+            this.board.height = boardSize.y;
+        })
     }
 
     launch(): this {
